@@ -1,0 +1,2 @@
+<*&*http://www.biopax.org/release/biopax-level2.owl#pathwayStep*&&*http://www.biopax.org/release/biopax-level2.owl#STEP-INTERACTIONS> <canReach> <*&*http://www.biopax.org/release/biopax-level2.owl#sequenceLocation*&*http://www.biopax.org/release/biopax-level2.owl#pathwayStep> .
+<*&*http://www.biopax.org/release/biopax-level2.owl#sequenceLocation*&*http://www.biopax.org/release/biopax-level2.owl#pathwayStep> <canReach> <*&*http://www.biopax.org/release/biopax-level2.owl#sequenceLocation*&*http://www.biopax.org/release/biopax-level2.owl#evidence> .

@@ -1,0 +1,2 @@
+<*&&*http://www.biopax.org/release/biopax-level2.owl#CELLULAR-LOCATION*&*http://www.biopax.org/release/biopax-level2.owl#openControlledVocabulary> <canReach> <*&&*http://www.biopax.org/release/biopax-level2.owl#TISSUE*&*http://www.biopax.org/release/biopax-level2.owl#openControlledVocabulary> .
+<*&&*http://www.biopax.org/release/biopax-level2.owl#TISSUE*&*http://www.biopax.org/release/biopax-level2.owl#openControlledVocabulary> <canReach> <*&&*http://www.biopax.org/release/biopax-level2.owl#TISSUE*&*http://www.biopax.org/release/biopax-level2.owl#bioSource> .

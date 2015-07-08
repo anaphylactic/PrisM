@@ -1,0 +1,2 @@
+<*&*http://www.biopax.org/release/biopax-level2.owl#bioSource*&*http://www.biopax.org/release/biopax-level2.owl#dataSource> <canReach> <*&*internal:def#0*&&*http://www.biopax.org/release/biopax-level2.owl#XREF*&*http://www.biopax.org/release/biopax-level2.owl#dataSource> .
+<*&*internal:def#0*&&*http://www.biopax.org/release/biopax-level2.owl#XREF*&*http://www.biopax.org/release/biopax-level2.owl#dataSource> <canReach> <*&&*http://www.biopax.org/release/biopax-level2.owl#DATA-SOURCE*&*http://www.biopax.org/release/biopax-level2.owl#dataSource> .
