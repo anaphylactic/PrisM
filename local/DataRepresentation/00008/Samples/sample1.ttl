@@ -1,2 +1,0 @@
-<*&&*http://www.biopax.org/release/biopax-level2.owl#CONTROLLER*&*http://www.biopax.org/release/biopax-level2.owl#control> <canReach> <*&&*http://www.biopax.org/release/biopax-level2.owl#CONTROLLER*&&*http://www.biopax.org/release/biopax-level2.owl#PARTICIPANTS> .
-<*&&*http://www.biopax.org/release/biopax-level2.owl#CONTROLLER*&&*http://www.biopax.org/release/biopax-level2.owl#PARTICIPANTS> <canReach> <*&*http://www.biopax.org/release/biopax-level2.owl#modulation*&&*http://www.biopax.org/release/biopax-level2.owl#CONTROLLER> .

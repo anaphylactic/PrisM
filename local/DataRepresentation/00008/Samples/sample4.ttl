@@ -1,2 +1,0 @@
-<*&&*http://www.biopax.org/release/biopax-level2.owl#FEATURE-TYPE*&*http://www.biopax.org/release/biopax-level2.owl#sequenceFeature> <canReach> <*&*http://www.biopax.org/release/biopax-level2.owl#sequenceFeature*&*http://www.biopax.org/release/biopax-level2.owl#sequenceInterval> .
-<*&*http://www.biopax.org/release/biopax-level2.owl#entity*&*http://www.biopax.org/release/biopax-level2.owl#sequenceFeature> <canReach> <*&&*http://www.biopax.org/release/biopax-level2.owl#FEATURE-TYPE*&*http://www.biopax.org/release/biopax-level2.owl#sequenceFeature> .
