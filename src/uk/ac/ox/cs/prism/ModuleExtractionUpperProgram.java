@@ -89,7 +89,8 @@ public class ModuleExtractionUpperProgram extends Program{
 
 		ontology = owlOntology.getTBox(); 
 		String ontologyPath = OWLHelper.getOntologyPath(ontology); 
-		ontologyDirectory = ontologyPath.substring(0, ontologyPath.lastIndexOf(Utility.FILE_SEPARATOR));
+		// Really is a '/' not the system file seperator.
+		ontologyDirectory = ontologyPath.substring(0, ontologyPath.lastIndexOf("/"));
 		clausify(); 
 		transform();
 		
