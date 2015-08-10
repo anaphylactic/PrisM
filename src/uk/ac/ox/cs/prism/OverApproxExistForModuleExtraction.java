@@ -25,6 +25,8 @@ import uk.ac.ox.cs.pagoda.hermit.DLClauseHelper;
 import uk.ac.ox.cs.pagoda.rules.Approximator;
 import uk.ac.ox.cs.pagoda.util.Namespace;
 
+
+
 public class OverApproxExistForModuleExtraction implements Approximator{
 	//copied from OverApproxExists with minor alterations
 
@@ -53,13 +55,6 @@ public class OverApproxExistForModuleExtraction implements Approximator{
 		}
 	}
 
-//	private static int noOfExistential(DLClause originalClause) {
-//		int no = 0; 
-//		for (Atom atom: originalClause.getHeadAtoms())
-//			if (atom.getDLPredicate() instanceof AtLeast)
-//				no += ((AtLeast) atom.getDLPredicate()).getNumber(); 
-//		return no; 
-//	}
 
 	private static int indexOfExistential(Atom headAtom, DLClause originalClause) {
 		if (!(headAtom.getDLPredicate() instanceof AtLeast)) return -1; 
@@ -97,28 +92,6 @@ public class OverApproxExistForModuleExtraction implements Approximator{
 	}	
 	
 	public static final String skolemisedIndividualPrefix = Namespace.PAGODA_ANONY + "individual"; 
-	
-////	private static int individualCounter = 0;
-////	private static Map<DLClause, Integer> individualNumber = new HashMap<DLClause, Integer>(); 
-//	private int individualCounter = 0;
-//	private Map<DLClause, Integer> individualNumber = new HashMap<DLClause, Integer>();
-//	
-////	public static Individual getNewIndividual(DLClause originalClause, int offset) {
-//	public Individual getNewIndividual(DLClause originalClause, int offset) {
-//		if (individualNumber.containsKey(originalClause)) 
-//			return Individual.create(skolemisedIndividualPrefix + (individualNumber.get(originalClause) + offset));
-//		individualNumber.put(originalClause, individualCounter); 
-//		Individual ret = Individual.create(skolemisedIndividualPrefix + (individualCounter + offset));
-//		individualCounter += noOfExistential(originalClause); 
-//		return ret;  
-//	}
-//	
-//	public Individual getSkolemIndividual(DLClause originalClause, int offset){
-//		if (inyectiveSkolemisation)
-//			return getNewIndividual(originalClause, offset);
-//		else
-//			return IndividualManager.getCriticalInstance(); 
-//	}
 	
 	public static int indexOfSkolemisedIndividual(Atom atom) {
 		Term t; 
@@ -265,12 +238,10 @@ public class OverApproxExistForModuleExtraction implements Approximator{
 				if (l >= 0) l = length - 1; 
 				
 				return DLClauseHelper.simplified(DLClause.create(headAtoms, bodyAtoms));  
-//				return DLClause.create(headAtoms, bodyAtoms);  
 			}
 			else {
 				--l; 
 				return DLClauseHelper.simplified(DLClause.create(new Atom[0], bodyAtoms));
-//				return DLClause.create(new Atom[0], bodyAtoms);
 			}
 		}
 

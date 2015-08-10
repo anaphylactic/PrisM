@@ -108,11 +108,6 @@ public class ABoxManager {
 					String s = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm).getIRI();
 					String bottomPredicate = bottomStrategy.getEmptyHead(X)[0].getDLPredicate().toString();
 					String trackingPredicate = trEncoder.getTrackingPredicate(MyPrefixes.PAGOdAPrefixes.getHermiTPrefixes().expandAbbreviatedIRI(bottomPredicate));
-//					//***
-//					System.out.println(MyPrefixes.PAGOdAPrefixes.getHermiTPrefixes().expandAbbreviatedIRI(bottomStrategy.getEmptyHead(X)[0].getDLPredicate().toString()));
-////					System.out.println(bottomStrategy.getEmptyHead(X)[0].getDLPredicate());
-//					System.out.println(bottomStrategy.getEmptyHead(X)[0].getDLPredicate().toString());
-//					//***
 					
 					addToTrackingABox(Utility_tme.print(trackingPredicate, s), out);
 				}
@@ -125,7 +120,6 @@ public class ABoxManager {
 			if (tupleIterator != null) tupleIterator.dispose();
 		}
 		
-		
 
 		//And now let's retrieve the facts that depend on the kind of module we want to extract 
 		switch (insepRel){
@@ -136,7 +130,8 @@ public class ABoxManager {
 			createTrackingABoxForQueryInseparability(store, trEncoder, prefixes, out);
 			break;		
 		case WEAK_QUERY_INSEPARABILITY:
-			createTrackingABoxForQueryInseparability(store, trEncoder, prefixes, out);//the method for CQ is ok for this case since it collects all facts derived over the reference signature, no matter the constants in their arguments 
+			createTrackingABoxForQueryInseparability(store, trEncoder, prefixes, out);
+			//the method for CQ is ok for this case since it collects ALL facts derived over the reference signature
 			break;		
 		case FACT_INSEPARABILITY:
 			createTrackingABoxForFactInseparability(store, trEncoder, prefixes, out);
@@ -188,9 +183,8 @@ public class ABoxManager {
 				GroundTerm groundTerm = tupleIterator.getGroundTerm(0);
 				if (groundTerm instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 					String s = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm).getIRI();
-					if (classes.contains(s)){
+					if (classes.contains(s))
 						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(s), i), out);
-					}
 				}
 			}
 		}
@@ -212,9 +206,8 @@ public class ABoxManager {
 				GroundTerm groundTerm = tupleIterator.getGroundTerm(0);
 				if (groundTerm instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 					String s = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm).getIRI();
-					if (isSameAsPredicate(s) || properties.contains(s)){
+					if (isSameAsPredicate(s) || properties.contains(s))
 						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(s), i, i),out);
-					}
 				}
 			}
 		}
@@ -250,9 +243,8 @@ public class ABoxManager {
 						cls instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 					String a = ((uk.ac.ox.cs.JRDFox.model.Individual)arg).getIRI();
 					String c = ((uk.ac.ox.cs.JRDFox.model.Individual)cls).getIRI();
-					if (classes.contains(c)){
+					if (classes.contains(c))
 						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(c), a), out);
-					}
 				}
 			}
 		}
@@ -276,9 +268,8 @@ public class ABoxManager {
 					String a1 = ((uk.ac.ox.cs.JRDFox.model.Individual)arg1).getIRI();
 					String p = ((uk.ac.ox.cs.JRDFox.model.Individual)prop).getIRI();
 					String a2 = ((uk.ac.ox.cs.JRDFox.model.Individual)arg2).getIRI();
-					if (isSameAsPredicate(p) || properties.contains(p)){
+					if (isSameAsPredicate(p) || properties.contains(p))
 						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(p), a1, a2), out);
-					}
 				}
 			}
 		}
@@ -298,12 +289,10 @@ public class ABoxManager {
 		Individual i;
 		for (OWLEntity e : signature){
 			i = indManager.getInstanceIndividual(e);
-			if (e instanceof OWLClass){
+			if (e instanceof OWLClass)
 				addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(((OWLClass) e).toStringID()), i), out);
-			}
-			else if (e instanceof OWLObjectProperty){
+			else if (e instanceof OWLObjectProperty)
 				addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(((OWLObjectProperty) e).toStringID()), i, i), out);
-			}
 			else 
 				throw new IllegalArgumentException("module extraction supported for signatures containing only classes and objectProperties");
 		}
@@ -365,9 +354,8 @@ public class ABoxManager {
 						GroundTerm cls = tupleIterator.getGroundTerm(0);
 						if (cls instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 							String c = ((uk.ac.ox.cs.JRDFox.model.Individual)cls).getIRI();
-							if (!c.equals(e.toStringID()) && classes.contains(c)){
+							if (!c.equals(e.toStringID()) && classes.contains(c))
 								addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(c), i), out);
-							}
 						}
 					}
 				}
@@ -399,9 +387,8 @@ public class ABoxManager {
 						GroundTerm prop = tupleIterator.getGroundTerm(0);
 						if (prop instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 							String p = ((uk.ac.ox.cs.JRDFox.model.Individual)prop).getIRI();
-							if (isSameAsPredicate(p) || (!p.equals(e.toStringID()) && properties.contains(p))){
+							if (isSameAsPredicate(p) || (!p.equals(e.toStringID()) && properties.contains(p)))
 								addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(p), i[0], i[1]), out);
-							}
 						}
 					}
 				}

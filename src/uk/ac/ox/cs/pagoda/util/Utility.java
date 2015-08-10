@@ -29,7 +29,7 @@ public class Utility {
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 	
-	public static final String TempDirectory = (new File("output")).getAbsolutePath() + FILE_SEPARATOR; 
+	public static final String TempDirectory = (new File("local/temp")).getAbsolutePath() + FILE_SEPARATOR; 
 
 	public static final int TEST = -1; 
 	public static final int FLY = 0;

@@ -19,7 +19,6 @@ import org.semanticweb.HermiT.model.DLClause;
 import org.semanticweb.HermiT.model.DLOntology;
 import org.semanticweb.HermiT.model.DLPredicate;
 import org.semanticweb.HermiT.model.Individual;
-import org.semanticweb.HermiT.model.Inequality;
 import org.semanticweb.HermiT.model.Variable;
 import org.semanticweb.HermiT.structural.OWLClausification;
 import org.semanticweb.owlapi.model.IRI;
@@ -54,6 +53,7 @@ import uk.ac.ox.cs.pagoda.rules.Approximator;
 import uk.ac.ox.cs.pagoda.rules.Program;
 import uk.ac.ox.cs.pagoda.util.Namespace;
 import uk.ac.ox.cs.pagoda.util.Utility;
+import uk.ac.ox.cs.prism.util.Utility_tme;
 
 public class ModuleExtractionUpperProgram extends Program{
 
@@ -74,7 +74,6 @@ public class ModuleExtractionUpperProgram extends Program{
 		m_approx = new OverApproxForTailoredModuleExtraction(indManager);
 	}
 
-	//do we need this?
 	//copied from class ApproxProgram in Pagoda
 	public int getBottomNumber() {
 		return botStrategy.getBottomNumber();
@@ -99,16 +98,10 @@ public class ModuleExtractionUpperProgram extends Program{
 		String aboxOWLFile = owlOntology.getABoxPath();
 		aBox = OWLHelper.loadOntology(aboxOWLFile);
 		OWLOntologyManager manager = aBox.getOWLOntologyManager();
-//		for (OWLAxiom axiom : aBox.getAxioms()){
-//			aBoxCorrespondence.put(axiom, axiom);
-//		}
 		OWLAxiom axiom; 
 		for (Atom atom: dlOntology.getPositiveFacts()) {
-			if ((axiom = OWLHelper.getABoxAssertion(manager.getOWLDataFactory(), atom)) != null){
+			if ((axiom = OWLHelper.getABoxAssertion(manager.getOWLDataFactory(), atom)) != null)
 				manager.addAxiom(aBox, axiom);
-//				aBoxCorrespondence.put(axiom, axiom);
-				System.out.println(axiom.toString() + " is first begin grouped with the TBox axioms, we should try to recover the original axiom");
-			}
 		}
 		addingEqualityRelatedAssertions();
 		
@@ -117,13 +110,10 @@ public class ModuleExtractionUpperProgram extends Program{
 			manager.saveOntology(aBox, out);
 			out.close();
 		} catch (OWLOntologyStorageException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -185,7 +175,6 @@ public class ModuleExtractionUpperProgram extends Program{
 						axiom instanceof OWLDeclarationAxiom ||
 						axiom instanceof OWLDataPropertyRangeAxiom); 
 				else {
-//					System.out.println(axiom); 
 					++noOfAxioms;
 				}
 					
@@ -199,18 +188,7 @@ public class ModuleExtractionUpperProgram extends Program{
 	@Override //copied from class ApproxProgram in Pagoda
 	public void transform() {
 		super.transform();
-		
 		addingNegativeAssertions();
-		
-		
-//		//TODO can we do this directly inside the method addingSubPropertyChainAxioms()?
-//		Iterator<DLClause> iterClause = subPropChainClauses.iterator(); 
-//		for (Iterator<OWLSubPropertyChainOfAxiom> iterAxiom = subPropChainAxioms.iterator(); iterAxiom.hasNext(); )
-//			addCorrespondence(iterClause.next(), iterAxiom.next());
-//		//TODO idem for addingTransitiveAxioms
-//		iterClause = transitiveClauses.iterator();
-//		for (Iterator<OWLTransitiveObjectPropertyAxiom> iterAxiom = transitiveAxioms.iterator(); iterAxiom.hasNext(); )
-//			addCorrespondence(iterClause.next(), iterAxiom.next());
 	}
 	
 	@Override
@@ -225,7 +203,6 @@ public class ModuleExtractionUpperProgram extends Program{
 			OWLObjectPropertyExpression objExp = axiom.getProperty(); 
 			headAtom = getAtom(objExp, X, Z);
 			
-			
 			if (binaryPredsOnBodies.contains((AtomicRole) headAtom.getDLPredicate())){
 				Atom[] bodyAtoms = new Atom[2];
 				bodyAtoms[0] = getAtom(objExp, X, Y); 
@@ -235,10 +212,6 @@ public class ModuleExtractionUpperProgram extends Program{
 				transitiveClauses.add(transitiveClause);
 				addCorrespondence(transitiveClause, axiom);
 			}
-//			else{
-//				iter.remove();
-//				//need to remove the element so that the lists of transitivity axioms and clauses still match because I will need to traverse them in parallel later to add the correspondences. 
-//			}
 		}
 	}
 	
@@ -280,9 +253,7 @@ public class ModuleExtractionUpperProgram extends Program{
 			}
 			//TODO deal with the case of NegativeDataPropertyAssertionAxiom
 			else if (axiom instanceof OWLNegativeDataPropertyAssertionAxiom){
-//				Atom bodyAtom;
-////				negAssertionClauses.add(DLClause.create(new Atom[0], new Atom[] {bodyAtom}));
-				System.out.println("there was an OWLNegativeDataPropertyAssertionAxiom that ahd to be ignored: " + axiom.toString());
+				Utility_tme.logDebug("there was an OWLNegativeDataPropertyAssertionAxiom that ahd to be ignored: " + axiom.toString());
 			}
 			for (DLClause clause : botStrategy.process(negAssertionClauses)){
 				clauses.add(clause);
@@ -334,13 +305,11 @@ public class ModuleExtractionUpperProgram extends Program{
 		manager.addAxioms(aBox, equalityRelatedAssertions);
 	}
 	
-	@Override //copied from class ApproxProgram in Pagoda
+	@Override //copied from class ApproxProgram in PAGOdA and modified 
 	public Collection<DLClause> convert2Clauses(DLClause clause) {
 		Collection<DLClause> ret = botStrategy.process(m_approx.convert(clause, clause));
-		//		OWLAxiom correspondingAxiom = OWLHelper.getOWLAxiom(ontology, clause); 
 		for (DLClause newClause: ret) {
 			addCorrespondence(newClause, clause);
-			//			addCorrespondence(newClause, correspondingAxiom);
 			
 			//register the binary predicates in its body
 			for (Atom at : newClause.getBodyAtoms()){
@@ -366,7 +335,7 @@ public class ModuleExtractionUpperProgram extends Program{
 		return containsEquality;
 	}
 	
-	//copied from class ApproxProgram in Pagoda, but modified
+	//copied from class ApproxProgram in PAGOdA and modified
 	@SuppressWarnings("unchecked")
 	private void addCorrespondence(DLClause newClause, Object corresponding) {
 		//corresponding could be a DLClause or an OWLAxiom --- if it's an OWLAxiom it must be a transitivity or subPropertyChain axiom
@@ -418,8 +387,6 @@ public class ModuleExtractionUpperProgram extends Program{
 	public OWLAxiom getCorrespondingAxiom(OWLAxiom axiom) {
 		OWLAxiom ret = aBoxCorrespondence.get(axiom);
 		return ret == null ? axiom : ret;
-//		if (ret == null) return axiom;
-//		else return ret;
 	}
 	
 	
@@ -427,7 +394,6 @@ public class ModuleExtractionUpperProgram extends Program{
 		return aBox;
 	}
 
-	//do we need this??
 	@Override
 	public String getOutputPath() {
 		return getDirectory() + Utility.FILE_SEPARATOR + "upper.dlog";

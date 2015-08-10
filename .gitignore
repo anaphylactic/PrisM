@@ -11,3 +11,4 @@ test/
 target/
 tmp/
 .DS_Store
+.project

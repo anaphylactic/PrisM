@@ -1,6 +1,7 @@
 package uk.ac.ox.cs.pagoda.approx;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutput;
@@ -119,19 +120,13 @@ public class RLPlusOntology implements KnowledgeBase {
 			manager.setOntologyDocumentIRI(tBox, IRI.create("file:" + tBoxDocumentIRI));
 			manager.setOntologyDocumentIRI(aBox, IRI.create("file:" + aBoxDocumentIRI));
 
-			FileOutputStream aBoxOut = new FileOutputStream(aBoxPath); 
-			manager.saveOntology(aBox, aBoxOut);
-			aBoxOut.close();
+			manager.saveOntology(aBox);
 			
 			restOntology = manager.createOntology();
 		}
 		catch (OWLOntologyCreationException e) {
 			e.printStackTrace();
 		} catch (OWLOntologyStorageException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

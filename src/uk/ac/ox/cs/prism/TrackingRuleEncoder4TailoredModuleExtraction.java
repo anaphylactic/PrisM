@@ -35,24 +35,25 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import uk.ac.ox.cs.JRDFox.JRDFStoreException;
 import uk.ac.ox.cs.JRDFox.store.DataStore;
 import uk.ac.ox.cs.JRDFox.store.TupleIterator;
+
 import uk.ac.ox.cs.pagoda.MyPrefixes;
 import uk.ac.ox.cs.pagoda.hermit.DLClauseHelper;
 import uk.ac.ox.cs.pagoda.util.Namespace;
 import uk.ac.ox.cs.pagoda.util.Utility;
 import uk.ac.ox.cs.prism.util.Utility_tme;
 
+
 public class TrackingRuleEncoder4TailoredModuleExtraction {
 	
-	//Because in Yujiao's encoding each rule in the overapproximation only could correspond 
-	//to one original rule - due to the Skolemisation strategy used - she would assign an index to 
-	//each of the original rules and then retrieve them directly. I assign an index to each of the 
+	//Because in PAGOdA's encoding each rule in the overapproximation only could correspond 
+	//to one original rule - due to the Skolemisation strategy used - there an index is assigned to 
+	//each of the original rules and then they are retrieved directly. I assign an index to each of the 
 	//rules in the overapproximation and then retrieve the corresponding original rules if they 
 	//are linked to some rule that has been selected
 	
 
 	protected ModuleExtractionUpperProgram program;
 	Collection<DLClause> trackingClauses = new HashSet<DLClause>();
-//	Collection<DLClause> queryClauses = new LinkedList<DLClause>();
 	
 	Map<Integer, DLClause> index2clause = new HashMap<Integer, DLClause>();
 	Map<DLClause, Integer> clause2index = new HashMap<DLClause, Integer>();
@@ -78,7 +79,6 @@ public class TrackingRuleEncoder4TailoredModuleExtraction {
 		Atom[] headAtom = new Atom[] {Atom.create(trackingSameAs, X, X)}, bodyAtom; 
 		for (OWLClass cls: onto.getClassesInSignature(true)) {
 			String clsIRI = cls.getIRI().toString();
-//			unaryPredicates.add(clsIRI); 
 			bodyAtom = new Atom[] {
 					Atom.create(AtomicConcept.create(clsIRI + "_tn"), X)
 //					Atom.create(AtomicConcept.create(GapTupleIterator.getGapPredicate(clsIRI)), X1), 
@@ -89,20 +89,11 @@ public class TrackingRuleEncoder4TailoredModuleExtraction {
 		Variable Y = Variable.create("Y"); 
 		for (OWLObjectProperty prop: onto.getObjectPropertiesInSignature(true)) {
 			String propIRI = prop.getIRI().toString();
-//			binaryPredicates.add(propIRI); 
 			AtomicRole trackingRole = AtomicRole.create(propIRI + "_tn"); 
-//			AtomicRole gapRole = AtomicRole.create(GapTupleIterator.getGapPredicate(propIRI)); 
-//			AtomicRole role = AtomicRole.create(propIRI); 
-			bodyAtom = new Atom[] {
-					Atom.create(trackingRole, X, Y) 
-//					Atom.create(gapRole, X, Y), 
-					}; 
+			bodyAtom = new Atom[] {Atom.create(trackingRole, X, Y)}; 
 			equalityRelatedClauses.add(DLClause.create(headAtom, bodyAtom));
 			
-			bodyAtom = new Atom[] {
-					Atom.create(trackingRole, Y, X), 
-//					Atom.create(gapRole, Y, X), 
-					}; 
+			bodyAtom = new Atom[] {Atom.create(trackingRole, Y, X)}; 
 			equalityRelatedClauses.add(DLClause.create(headAtom, bodyAtom)); 
 		}
 		
@@ -208,12 +199,9 @@ public class TrackingRuleEncoder4TailoredModuleExtraction {
 	}
 	
 	protected Individual getIndividual4GeneralRule(DLClause clause) {
-//		clause = program.getCorrespondingClause(clause);
-////		if (clause == null)
-////			return Individual.create(getIRI("_r0")); 
 		//instead of assigning one individual to each original rule, we assign one to each rule 
 		//in the approximation, since the same rule in the approximation can correspond to several 
-		//original rules (because we sometimes skolemise everything to the critical instance ) 
+		//original rules (because we sometimes Skolemise everything to the critical instance ) 
 		Integer index = clause2index.get(clause); 
 		if (index == null) {
 			index = clause2index.size() + 1; 
@@ -240,7 +228,8 @@ public class TrackingRuleEncoder4TailoredModuleExtraction {
 		int ruleIndex = Integer.valueOf(iri.substring(index)); 
 		return program.getCorrespondingClauses(index2clause.get(ruleIndex));
 	}
-	public Object[] getSelectedClausesOrAssertions(String iri) {//return either a set of DLClauses in the first component or an OWLAxiom in the second one 
+	public Object[] getSelectedClausesOrAssertions(String iri) {
+		//return either a set of DLClauses in the first component or an OWLAxiom in the second one 
 		Object[] ret = new Object[2];
 		try {
 			int i = iri.lastIndexOf("_r") + 2;

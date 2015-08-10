@@ -15,15 +15,17 @@ import org.semanticweb.HermiT.model.DLClause;
 import org.semanticweb.HermiT.model.DLPredicate;
 import org.semanticweb.HermiT.model.Equality;
 import org.semanticweb.HermiT.model.Inequality;
-import org.semanticweb.owlapi.model.OWLAxiom;
 
 import uk.ac.ox.cs.pagoda.MyPrefixes;
 import uk.ac.ox.cs.pagoda.hermit.DLClauseHelper;
 import uk.ac.ox.cs.pagoda.multistage.Normalisation;
 
+
+
 @Deprecated
 public class TrackingRuleEncoderDisjVar4TailoredModuleExtraction extends TrackingRuleEncoder4TailoredModuleExtraction{
 	//based on TrackingRuleEncoderDisjVar1 from PAGOdA
+	//currently incompatible with the rest of the project, substantial changes need to be done to be able to reuse this 
 
 	
 	public TrackingRuleEncoderDisjVar4TailoredModuleExtraction(
@@ -149,170 +151,6 @@ public class TrackingRuleEncoderDisjVar4TailoredModuleExtraction extends Trackin
 	private void addTrackingClause(DLClause clause) {
 		trackingClauses.add(clause); 
 	}
-
-	
-//	
-////	private Atom getAuxiliaryAtom(Atom headAtom) {
-////		DLPredicate p = headAtom.getDLPredicate(); 
-////		if (p instanceof AtLeast || p instanceof AtLeast) {
-////			return Atom.create(generateAuxiliaryRule((AtLeast) p, true), headAtom.getArgument(0)); 
-////		}
-////		if (p instanceof AtomicConcept) 
-////			return Atom.create(generateAuxiliaryRule((AtomicConcept) p), headAtom.getArgument(0)); 
-////		if (p instanceof AtomicRole) 
-////			return Atom.create(generateAuxiliaryRule((AtomicRole) p), headAtom.getArgument(0), headAtom.getArgument(1));
-////		if (p instanceof Equality || p instanceof AnnotatedEquality) 
-////			return Atom.create(generateAuxiliaryRule(Equality.INSTANCE), headAtom.getArgument(0), headAtom.getArgument(1)); 
-////		if (p instanceof Inequality) 
-////			return Atom.create(generateAuxiliaryRule((Inequality) p), headAtom.getArgument(0), headAtom.getArgument(1)); 
-////
-////		return null;
-////	}
-//
-//
-//	
-//	
-//
-//	
-//	private DLPredicate getAuxPredicate(DLPredicate p) {
-//		if (p instanceof AtLeastConcept) {
-//			StringBuilder builder = new StringBuilder(
-//					Normalisation.getAuxiliaryConcept4Disjunct((AtLeastConcept) p));
-//			builder.append("_AUXa").append(currentQuery.getQueryID()); 
-//			return AtomicConcept.create(builder.toString()); 
-//		}
-//		
-//		return getDLPredicate(p, "_AUXa" + currentQuery.getQueryID());
-//	}
-//
-////	private DLPredicate getTrackingBottomDLPredicate(DLPredicate p) {
-////		return getDLPredicate(p, getTrackingSuffix("0"));
-////	}
-//
-//	private DLPredicate generateAuxiliaryRule(AtLeast p1, boolean withAux) {
-//		AtLeastConcept p = Normalisation.toAtLeastConcept(p1); 
-//		
-//		int num = p.getNumber(); 
-//		Variable[] Ys = new Variable[num]; 
-//		if (num > 1)
-//			for (int i = 0; i < num; ++i) 
-//				Ys[i] = Variable.create("Y" + (i + 1));
-//		else 
-//			Ys[0] = Y; 
-//		
-//		Collection<Atom> expandedAtom = new LinkedList<Atom>(); 
-//		Collection<Atom> representativeAtom = new LinkedList<Atom>(); 
-//		if (p.getOnRole() instanceof AtomicRole) {
-//			AtomicRole r = (AtomicRole) p.getOnRole(); 
-//			for (int i = 0; i < num; ++i) 
-//				expandedAtom.add(Atom.create(r, X, Ys[i]));
-//			representativeAtom.add(Atom.create(r, X, Ys[0])); 
-//		}
-//		else {
-//			AtomicRole r = ((InverseRole) p.getOnRole()).getInverseOf(); 
-//			for (int i = 0; i < num; ++i) 
-//				expandedAtom.add(Atom.create(r, Ys[i], X));
-//			representativeAtom.add(Atom.create(r, Ys[0], X)); 
-//		}
-//		
-//		if (num > 1) {
-//			representativeAtom.add(Atom.create(Inequality.INSTANCE, Ys[0], Ys[1])); 
-//		}
-//		for (int i = 0; i < num; ++i)
-//			for (int j = i + 1; j < num; ++j)
-//				expandedAtom.add(Atom.create(Inequality.INSTANCE, Ys[i], Ys[j])); 
-//		
-//		if (!p.getToConcept().equals(AtomicConcept.THING)) {
-//			AtomicConcept c; 
-//			if (p.getToConcept() instanceof AtomicConcept) 
-//				c = (AtomicConcept) p.getToConcept();
-//			else {
-//				c = OverApproxExist.getNegationConcept(((AtomicNegationConcept) p.getToConcept()).getNegatedAtomicConcept());
-//			}
-//			for (int i = 0; i < num; ++i)
-//				expandedAtom.add(Atom.create(c, Ys[i])); 
-//			representativeAtom.add(Atom.create(c, Ys[0]));
-//		}
-//
-//		AtomicConcept ac = AtomicConcept.create(Normalisation.getAuxiliaryConcept4Disjunct(p));
-//		DLPredicate trackingPredicate = getTrackingDLPredicate(ac); 
-////		DLPredicate gapPredicate = getGapDLPredicate(ac); 
-//		DLPredicate auxPredicate = withAux ? getAuxPredicate(p) : null;
-//		
-//		for (Atom atom: representativeAtom) {
-//			Atom[] bodyAtoms = new Atom[expandedAtom.size() + 1]; 
-//			if (atom.getArity() == 1)
-//				bodyAtoms[0] = Atom.create(getTrackingDLPredicate(atom.getDLPredicate()), atom.getArgument(0));
-//			else 
-//				bodyAtoms[0] = Atom.create(getTrackingDLPredicate(atom.getDLPredicate()), atom.getArgument(0), atom.getArgument(1));
-//			int i = 0; 
-//			for (Atom bodyAtom: expandedAtom)
-//				bodyAtoms[++i] = bodyAtom;  
-//			addTrackingClause(DLClause.create(new Atom[] {Atom.create(trackingPredicate, X)}, bodyAtoms));
-//			
-//			bodyAtoms = new Atom[expandedAtom.size() + 1]; 
-//			if (atom.getArity() == 1)
-//				bodyAtoms[0] = Atom.create(getGapDLPredicate(atom.getDLPredicate()), atom.getArgument(0));
-//			else 
-//				bodyAtoms[0] = Atom.create(getGapDLPredicate(atom.getDLPredicate()), atom.getArgument(0), atom.getArgument(1));
-//			i = 0; 
-//			for (Atom bodyAtom: expandedAtom)
-//				bodyAtoms[++i] = bodyAtom;  
-//			addTrackingClause(DLClause.create(new Atom[] {Atom.create(gapPredicate, X)}, bodyAtoms));
-//			
-////			if (withAux) {
-////				bodyAtoms = new Atom[expandedAtom.size() + 1]; 
-////				bodyAtoms[0] = getAuxiliaryAtom(atom);
-////				i = 0; 
-////				for (Atom bodyAtom: expandedAtom)
-////					bodyAtoms[++i] = bodyAtom;  
-////				addTrackingClause(DLClause.create(new Atom[] {Atom.create(auxPredicate, X)}, bodyAtoms));
-////			}
-//		}
-//		
-//		return withAux ? auxPredicate : trackingPredicate;
-//	}
-//
-////	private DLPredicate generateAuxiliaryRule(AtomicRole p) {
-//////		if (currentQuery.isBottom()) 
-//////			return getTrackingDLPredicate(p);
-////		
-////		DLPredicate ret = getAuxPredicate(p); 
-////		Atom[] headAtom = new Atom[] {Atom.create(ret, X, Y)};
-////
-////		addTrackingClause(
-////				DLClause.create(headAtom, new Atom[] {Atom.create(getTrackingDLPredicate(p), X, Y)})); 
-//////		addTrackingClause(
-//////				DLClause.create(headAtom, new Atom[] {Atom.create(getTrackingBottomDLPredicate(p), X, Y)})); 
-////		
-////		return ret; 
-////	}
-//	
-//	private Variable X = Variable.create("X"), Y = Variable.create("Y"); 
-//
-////	private DLPredicate generateAuxiliaryRule(AtomicConcept p) {
-//////		if (currentQuery.isBottom())
-//////			return getTrackingDLPredicate(p); 
-////		
-////		DLPredicate ret = getAuxPredicate(p); 
-////		Atom[] headAtom = new Atom[] {Atom.create(ret, X)}; 
-////		addTrackingClause(
-////				DLClause.create(headAtom, 
-////						new Atom[] { Atom.create(getTrackingDLPredicate(p), X)})); 
-//////		addTrackingClause(
-//////				DLClause.create(headAtom, 
-//////						new Atom[] { Atom.create(getTrackingBottomDLPredicate(p), X)}));
-////		
-////		return ret; 
-////	}
-//
-////	private DLPredicate generateAuxiliaryRule(Equality instance) {
-////		return generateAuxiliaryRule(AtomicRole.create(Namespace.EQUALITY));
-////	}
-////
-////	private DLPredicate generateAuxiliaryRule(Inequality instance) {
-////		return generateAuxiliaryRule(AtomicRole.create(Namespace.INEQUALITY)); 
-////	}
 	
 	@Override
 	public String getTrackingProgram() {

@@ -132,7 +132,6 @@ public class IndividualManager {
 	public String printTopFactsForAllIndividuals() throws Exception{
 		StringBuilder sb = new StringBuilder();
 		OWLClass top = new OWLDataFactoryImpl().getOWLThing();
-//		if (!injectiveInstantiation || !injectiveSkolemisation)
 		if (criticalInstanceHasBeenUsed)
 			sb.append(Utility_tme.print(top, getCriticalInstance()));
 		if (injectiveInstantiation){
@@ -145,7 +144,6 @@ public class IndividualManager {
 		}
 		if (injectiveSkolemisation){
 			for (Entry<DLClause, Integer> e : index4clause.entrySet()){
-//				Utility_tme.print(facts, top.getIRI().toString(),"bla");
 				sb.append(Utility_tme.print(top,getSkolemIndividualForIndex(e.getValue())));
 			}
 		}
