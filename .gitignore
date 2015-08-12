@@ -7,7 +7,6 @@
 hs_err_pid*
 
 local/
-test/
 target/
 tmp/
 .DS_Store
