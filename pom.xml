@@ -79,7 +79,7 @@
 			<artifactId>JRDFox</artifactId>
 			<version>2213</version>
 			<scope>system</scope>
-			<systemPath>${basedir}/lib/RDFox/JRDFox.jar</systemPath>
+			<systemPath>${basedir}/lib/RDFox/Mac/JRDFox.jar</systemPath>
 		</dependency>
 	</dependencies>
 </project>
