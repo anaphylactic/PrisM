@@ -33,6 +33,21 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<finalName>uber-${artifactId}-${version}</finalName>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<properties>
@@ -77,9 +92,14 @@
 		<dependency>
 			<groupId>uk.ac.ox.cs</groupId>
 			<artifactId>JRDFox</artifactId>
-			<version>2213</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/lib/RDFox/JRDFox.jar</systemPath>
+			<version>build2213</version>
 		</dependency>
 	</dependencies>
+	<repositories>
+	    <repository>
+        	<id>project.local</id>
+        	<name>project</name>
+        	<url>file:${basedir}/repo</url>
+    	</repository>
+	</repositories>
 </project>
