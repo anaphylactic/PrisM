@@ -624,5 +624,52 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		assertTrue(TestUtility.compareCollections(actual, control));
 	}
 	
+	@Test
+	public void ExtractingSeveralModulesInARowTest() throws OWLOntologyCreationException, JRDFStoreException {
+		OWLDataFactory factory = new OWLDataFactoryImpl();
+		
+		OWLClass a = factory.getOWLClass(IRI.create(iri+"A"));
+		OWLClass b = factory.getOWLClass(IRI.create(iri+"B"));
+		OWLObjectProperty r = factory.getOWLObjectProperty(IRI.create(iri+"R"));
+		OWLNamedIndividual o = factory.getOWLNamedIndividual(IRI.create(iri+"o"));
+		OWLNamedIndividual i = factory.getOWLNamedIndividual(IRI.create(iri+"i"));
+		
+		OWLAxiom ax1 = factory.getOWLSubClassOfAxiom(a,factory.getOWLObjectOneOf(o));
+		OWLAxiom ax2 = factory.getOWLObjectPropertyAssertionAxiom(r, o, i);
+		OWLAxiom ax3 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectHasValue(r, i), b);
+		OWLAxiom ax4 = factory.getOWLSubClassOfAxiom(a,factory.getOWLObjectHasValue(r, i));
+		
+		
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		
+		manager.addAxiom(ont, ax1);
+		manager.addAxiom(ont, ax2);
+		manager.addAxiom(ont, ax3);
+		manager.addAxiom(ont, ax4);
+		
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		signature.add(b);
+
+		PrisM extractor = new PrisM(ont, InseparabilityRelation.CLASSIFICATION_INSEPARABILITY);
+		extractor.extract(signature);//one extraction before
+		
+		signature = new HashSet<OWLEntity>();
+		signature.add(a);
+		Set<String> actual = new HashSet<String>();
+		for (OWLAxiom ax : extractor.extract(signature)){
+			actual.add(ax.toString());
+//			System.out.println(ax.toString());
+		}
+		extractor.finishDisposal();
+		Set<String> control = new HashSet<String>();
+		control.add(ax1.toString());
+		control.add(ax2.toString());
+		control.add(ax3.toString());
+		control.add(ax4.toString());
+		
+		assertTrue(TestUtility.compareCollections(actual, control));
+	}
+	
 
 }

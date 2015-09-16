@@ -11,11 +11,13 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
@@ -55,7 +57,6 @@ public class PrisM{
 		
 		ontology = o;
 		this.insepRel = insepRel;
-		indManager = new IndividualManager(insepRel);
 		if (savingMode){
 			initialABoxFileName = Utility.TempDirectory + insepRel.toString() + "_initialABox.ttl";
 			trackingABoxFileName = Utility.TempDirectory + insepRel.toString() + "_trackingABox.ttl";
@@ -87,7 +88,8 @@ public class PrisM{
 		return extract(signature,true);
 	}
 	public Set<OWLAxiom> extract(Set<OWLEntity> signature, boolean viaSyntacticLocality){
-
+		indManager = new IndividualManager(insepRel);
+		
 		initStartingModule(signature, viaSyntacticLocality);
 
 		BottomStrategy bottomStrategy = new UnaryBottom();
@@ -119,16 +121,20 @@ public class PrisM{
 			String ontologyIRI = ontology.getOntologyID().getOntologyIRI().toString();
 			String originalExtension = documentIRI.substring(documentIRI.lastIndexOf("."));
 			String moduleIRI = ontologyIRI.replace(originalExtension, "-startingModule.owl");
+			
+			OWLOntologyManager manager = OWLManager.createOWLOntologyManager(); 
+//			if (manager.contains(IRI.create(moduleIRI)))
+//				manager.removeOntology(startingModule);
 
 			try {
 				if (insepRel == InseparabilityRelation.CLASSIFICATION_INSEPARABILITY){
-					SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(ontology.getOWLOntologyManager(), ontology, ModuleType.BOT);
+					SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, ontology, ModuleType.BOT);
 					startingModule = extractor.extractAsOntology(signature, IRI.create(moduleIRI));
 					Utility_tme.logDebug("# we start from OWLAPI BOT-module");
 					Utility_tme.logDebug("# which contains " + startingModule.getAxiomCount());
 				}
 				else{
-					SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(ontology.getOWLOntologyManager(), ontology, ModuleType.STAR);
+					SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, ontology, ModuleType.STAR);
 					startingModule = extractor.extractAsOntology(signature, IRI.create(moduleIRI));
 					Utility_tme.logDebug("# we start from OWLAPI STAR-module");
 					Utility_tme.logDebug("# which contains " + startingModule.getAxiomCount());

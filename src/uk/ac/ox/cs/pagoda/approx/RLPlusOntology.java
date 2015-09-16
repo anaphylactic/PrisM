@@ -1,7 +1,6 @@
 package uk.ac.ox.cs.pagoda.approx;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutput;
