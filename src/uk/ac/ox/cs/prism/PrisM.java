@@ -87,7 +87,7 @@ public class PrisM{
 	public Set<OWLAxiom> extract(Set<OWLEntity> signature) throws JRDFStoreException {
 		return extract(signature,true);
 	}
-	public Set<OWLAxiom> extract(Set<OWLEntity> signature, boolean viaSyntacticLocality){
+	private Set<OWLAxiom> extract(Set<OWLEntity> signature, boolean viaSyntacticLocality){
 		indManager = new IndividualManager(insepRel);
 		
 		initStartingModule(signature, viaSyntacticLocality);
