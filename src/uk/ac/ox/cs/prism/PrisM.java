@@ -58,10 +58,10 @@ public class PrisM{
 		ontology = o;
 		this.insepRel = insepRel;
 		if (savingMode){
-			initialABoxFileName = Utility.TempDirectory + insepRel.toString() + "_initialABox.ttl";
-			trackingABoxFileName = Utility.TempDirectory + insepRel.toString() + "_trackingABox.ttl";
-			programFileName = Utility.TempDirectory + insepRel.toString() + "_program.dlog";
-			trackingProgramFileName = Utility.TempDirectory + insepRel.toString() + "_trackingProgram.dlog";
+			initialABoxFileName = Utility.TempDirectory + "initialABox.ttl";
+			trackingABoxFileName = Utility.TempDirectory + "trackingABox.ttl";
+			programFileName = Utility.TempDirectory + "program.dlog";
+			trackingProgramFileName = Utility.TempDirectory + "trackingProgram.dlog";
 			String[] aux = ontology.getOntologyID().toString().split("/");
 			aux = aux[aux.length-1].split(">");
 			aux = aux[0].split(".owl");
@@ -84,7 +84,7 @@ public class PrisM{
 			numberOfThreads = nThreads;
 	}
 	
-	public Set<OWLAxiom> extract(Set<OWLEntity> signature) throws JRDFStoreException {
+	public Set<OWLAxiom> extract(Set<OWLEntity> signature){
 		return extract(signature,true);
 	}
 	private Set<OWLAxiom> extract(Set<OWLEntity> signature, boolean viaSyntacticLocality){
@@ -117,10 +117,11 @@ public class PrisM{
 	protected void initStartingModule(Set<OWLEntity> signature, boolean viaSyntacticLocality){
 		if (viaSyntacticLocality){
 			//We start by extracting a syntactic locality module with the OWLAPI
-			String documentIRI = ontology.getOWLOntologyManager().getOntologyDocumentIRI(ontology).toString();
-			String ontologyIRI = ontology.getOntologyID().getOntologyIRI().toString();
-			String originalExtension = documentIRI.substring(documentIRI.lastIndexOf("."));
-			String moduleIRI = ontologyIRI.replace(originalExtension, "-startingModule.owl");
+//			String documentIRI = ontology.getOWLOntologyManager().getOntologyDocumentIRI(ontology).toString();
+//			String ontologyIRI = ontology.getOntologyID().getOntologyIRI().toString();
+//			String originalExtension = documentIRI.substring(documentIRI.lastIndexOf("."));
+//			String moduleIRI = ontologyIRI.replace(originalExtension, "-startingModule.owl");
+			String moduleIRI = Utility.TempDirectory + "startingModule.owl";
 			
 			OWLOntologyManager manager = OWLManager.createOWLOntologyManager(); 
 //			if (manager.contains(IRI.create(moduleIRI)))
