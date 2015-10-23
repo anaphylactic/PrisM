@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.ox.cs.prism.PrisM.InseparabilityRelation;
-import uk.ac.ox.cs.prism.util.Utility_tme;
+import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
 public class IndividualManager {
 
@@ -133,18 +133,18 @@ public class IndividualManager {
 		StringBuilder sb = new StringBuilder();
 		OWLClass top = new OWLDataFactoryImpl().getOWLThing();
 		if (criticalInstanceHasBeenUsed)
-			sb.append(Utility_tme.print(top, getCriticalInstance()));
+			sb.append(Utility_PrisM.print(top, getCriticalInstance()));
 		if (injectiveInstantiation){
 			for (Entry<OWLClass, Integer> e : index4Class.entrySet()){
-				sb.append(Utility_tme.print(top,getInstanceIndividualForIndex(e.getValue())));
+				sb.append(Utility_PrisM.print(top,getInstanceIndividualForIndex(e.getValue())));
 			}
 			for (Entry<OWLObjectProperty, Integer> e : index4Property.entrySet()){
-				sb.append(Utility_tme.print(top,getInstanceIndividualForIndex(e.getValue())));
+				sb.append(Utility_PrisM.print(top,getInstanceIndividualForIndex(e.getValue())));
 			}
 		}
 		if (injectiveSkolemisation){
 			for (Entry<DLClause, Integer> e : index4clause.entrySet()){
-				sb.append(Utility_tme.print(top,getSkolemIndividualForIndex(e.getValue())));
+				sb.append(Utility_PrisM.print(top,getSkolemIndividualForIndex(e.getValue())));
 			}
 		}
 		return sb.toString();
@@ -161,9 +161,9 @@ public class IndividualManager {
 		String sameAs = "<http://www.w3.org/2002/07/owl#sameAs>";
 		for (OWLIndividual i : individuals){
 			Individual ind = Individual.create(i.toStringID());
-			sb.append(Utility_tme.print(top, ind));
+			sb.append(Utility_PrisM.print(top, ind));
 			if (makeAllEqualToCriticalInstace)
-				sb.append(Utility_tme.print(sameAs, ind, IndividualManager.getCriticalInstance()));
+				sb.append(Utility_PrisM.print(sameAs, ind, IndividualManager.getCriticalInstance()));
 		}
 
 		return sb.toString();

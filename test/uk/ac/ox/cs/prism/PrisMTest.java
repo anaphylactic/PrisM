@@ -12,6 +12,9 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDataRange;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -45,7 +48,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 				factory.getOWLObjectSomeValuesFrom(q, factory.getOWLThing()));
 		OWLAxiom ax5 = factory.getOWLSubClassOfAxiom(a, factory.getOWLObjectSomeValuesFrom(r, a));
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology o = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology o = manager.createOntology();
 		manager.addAxiom(o, ax1);
 		manager.addAxiom(o, ax2);
 		manager.addAxiom(o, ax3);
@@ -88,7 +91,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 				factory.getOWLObjectHasSelf(p), 
 				factory.getOWLObjectHasSelf(q));
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology o = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology o = manager.createOntology();
 		manager.addAxiom(o, ax1);
 		manager.addAxiom(o, ax2);
 		manager.addAxiom(o, ax3);
@@ -122,7 +125,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax1 = factory.getOWLSubClassOfAxiom(a, factory.getOWLObjectSomeValuesFrom(r, c));
 		OWLAxiom ax2 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(r, c), a);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology o = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology o = manager.createOntology();
 		manager.addAxiom(o, ax1);
 		manager.addAxiom(o, ax2);
 
@@ -168,7 +171,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax7 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, factory.getOWLThing()), h);
 		OWLAxiom ax8 = factory.getOWLSubClassOfAxiom(g, h);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
 		manager.addAxiom(ont, ax3);
@@ -226,7 +229,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax7 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, factory.getOWLThing()), h);
 		OWLAxiom ax8 = factory.getOWLSubClassOfAxiom(g, h);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
 		manager.addAxiom(ont, ax3);
@@ -285,7 +288,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax7 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, factory.getOWLThing()), h);
 		OWLAxiom ax8 = factory.getOWLSubClassOfAxiom(g, h);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
 		manager.addAxiom(ont, ax3);
@@ -340,7 +343,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax7 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, factory.getOWLThing()), h);
 		OWLAxiom ax8 = factory.getOWLSubClassOfAxiom(g, h);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
 		manager.addAxiom(ont, ax3);
@@ -392,7 +395,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax7 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, factory.getOWLThing()), h);
 		OWLAxiom ax8 = factory.getOWLSubClassOfAxiom(g, h);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
 		manager.addAxiom(ont, ax3);
@@ -438,7 +441,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax6 = factory.getOWLClassAssertionAxiom(c,i);
 		
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
@@ -494,7 +497,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax7 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, factory.getOWLThing()), h);
 		OWLAxiom ax8 = factory.getOWLSubClassOfAxiom(g, h);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
 		manager.addAxiom(ont, ax3);
@@ -552,7 +555,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		OWLAxiom ax7 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, factory.getOWLThing()), h);
 		OWLAxiom ax8 = factory.getOWLSubClassOfAxiom(g, h);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
 		manager.addAxiom(ont, ax3);
@@ -597,7 +600,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		
 		
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
@@ -641,7 +644,7 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		
 		
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ont = manager.createOntology(IRI.create(iri.replace("#", ".owl")));
+		OWLOntology ont = manager.createOntology();
 		
 		manager.addAxiom(ont, ax1);
 		manager.addAxiom(ont, ax2);
@@ -671,5 +674,86 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		assertTrue(TestUtility.compareCollections(actual, control));
 	}
 	
+	@Test
+	public void revertingNormalisationTest() throws OWLOntologyCreationException, JRDFStoreException {
+		OWLDataFactory factory = new OWLDataFactoryImpl();
+		
+		OWLClass a = factory.getOWLClass(IRI.create(iri+"A"));
+		OWLClass b = factory.getOWLClass(IRI.create(iri+"B"));
+		OWLClass c = factory.getOWLClass(IRI.create(iri+"C"));
+		OWLClass d = factory.getOWLClass(IRI.create(iri+"D"));
+		OWLObjectProperty r = factory.getOWLObjectProperty(IRI.create(iri+"R"));
+		OWLObjectProperty s = factory.getOWLObjectProperty(IRI.create(iri+"S"));
+		OWLNamedIndividual o = factory.getOWLNamedIndividual(IRI.create(iri+"o"));
+		
+		OWLAxiom ax1 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectUnionOf(a,b),factory.getOWLObjectSomeValuesFrom(r, c));
+		OWLAxiom ax2 = factory.getOWLSubClassOfAxiom(a,factory.getOWLObjectHasValue(s, o));
+		OWLAxiom ax3 = factory.getOWLClassAssertionAxiom(b, o);
+		OWLAxiom ax4 = factory.getOWLSubClassOfAxiom(factory.getOWLObjectSomeValuesFrom(s, b),factory.getOWLObjectIntersectionOf(c,d));
+		
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology ont = manager.createOntology();
+		
+		manager.addAxiom(ont, ax1);
+		manager.addAxiom(ont, ax2);
+		manager.addAxiom(ont, ax3);
+		manager.addAxiom(ont, ax4);
+		
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		signature.add(a);
+		signature.add(c);
+
+		PrisM extractor = new PrisM(ont, InseparabilityRelation.QUERY_INSEPARABILITY);
+		Set<String> actual = new HashSet<String>();
+		for (OWLAxiom ax : extractor.extract(signature)){
+			actual.add(ax.toString());
+//			System.out.println(ax.toString());
+		}
+		extractor.finishDisposal();
+		Set<String> control = new HashSet<String>();
+		control.add(ax1.toString());
+		control.add(ax2.toString());
+		control.add(ax3.toString());
+		control.add(ax4.toString());
+		
+		assertTrue(TestUtility.compareCollections(actual, control));
+	}
+	
+	//TODO
+//	@Test
+//	public void supportginDatatypesTest() throws OWLOntologyCreationException, JRDFStoreException {
+//		OWLDataFactory factory = new OWLDataFactoryImpl();
+//		
+//		OWLClass a = factory.getOWLClass(IRI.create("A"));
+//		OWLDataProperty dp = factory.getOWLDataProperty(IRI.create("dataP"));
+//		OWLDatatype datatype = factory.getOWLDatatype(IRI.create("datatype"));
+//		OWLDataRange dataRange = factory.getOWLDataUnionOf(factory.getIntegerOWLDatatype(), factory.getFloatOWLDatatype());
+//		OWLDataRange dataRange2 = factory.getOWLDataIntersectionOf(factory.getIntegerOWLDatatype(), factory.getFloatOWLDatatype());
+//		
+//		OWLAxiom ax1 = factory.getOWLDatatypeDefinitionAxiom(datatype, dataRange);
+//		OWLAxiom ax2 = factory.getOWLDataPropertyRangeAxiom(dp, factory.getBooleanOWLDatatype());
+//		
+//		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+//		OWLOntology ont = manager.createOntology();
+//		
+//		manager.addAxiom(ont, ax1);
+//		manager.addAxiom(ont, ax2);
+//		
+//		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+//		signature.add(a);
+//
+//		PrisM extractor = new PrisM(ont, InseparabilityRelation.CLASSIFICATION_INSEPARABILITY);
+//		Set<String> actual = new HashSet<String>();
+//		for (OWLAxiom ax : extractor.extract(signature)){
+//			actual.add(ax.toString());
+//			System.out.println(ax.toString());
+//		}
+//		extractor.finishDisposal();
+//		Set<String> control = new HashSet<String>();
+//		control.add(ax1.toString());
+//		control.add(ax2.toString());
+//		
+//		assertTrue(TestUtility.compareCollections(actual, control));
+//	}
 
 }

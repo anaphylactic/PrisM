@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLFunctionalObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectMaxCardinality;
@@ -43,11 +44,6 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.profiles.OWL2RLProfile;
-import org.semanticweb.owlapi.profiles.OWLProfileReport;
-import org.semanticweb.owlapi.profiles.OWLProfileViolation;
-import org.semanticweb.owlapi.profiles.UseOfUndeclaredClass;
-import org.semanticweb.owlapi.profiles.UseOfUndeclaredDataProperty;
-import org.semanticweb.owlapi.profiles.UseOfUndeclaredObjectProperty;
 import org.semanticweb.owlapi.util.OWLOntologyMerger;
 
 import uk.ac.ox.cs.pagoda.approx.Clause;
@@ -261,7 +257,7 @@ public class OWLHelper {
 		return factory.getOWLSubClassOfAxiom(getSimplifiedConjunction(factory, subClasses), getSimplifiedDisjunction(factory, superClasses)); 
 	}
 	
-	public static OWLAxiom getABoxAssertion(OWLDataFactory factory, Atom atom) {
+	public static OWLIndividualAxiom getABoxAssertion(OWLDataFactory factory, Atom atom) {
 		if (atom.getDLPredicate().toString().contains("internal:nom#"))
 			return null; 
 		try {
@@ -270,12 +266,16 @@ public class OWLHelper {
 						factory.getOWLClass(IRI.create(((AtomicConcept) atom.getDLPredicate()).getIRI())), 
 						factory.getOWLNamedIndividual(IRI.create(((Individual) atom.getArgument(0)).getIRI()))
 						);
-			else 
+			else {
+				String propertyName = ((AtomicRole) atom.getDLPredicate()).getIRI();
+				if (propertyName == "==") propertyName = Namespace.EQUALITY;
+				if (propertyName == "!=") propertyName = Namespace.INEQUALITY;
 				return factory.getOWLObjectPropertyAssertionAxiom(
-						factory.getOWLObjectProperty(IRI.create(((AtomicRole) atom.getDLPredicate()).getIRI())), 
+						factory.getOWLObjectProperty(IRI.create(propertyName)), 
 						factory.getOWLNamedIndividual(IRI.create(((Individual) atom.getArgument(0)).getIRI())), 
 						factory.getOWLNamedIndividual(IRI.create(((Individual) atom.getArgument(1)).getIRI()))
 						);
+			}
 		} catch (Exception e) {
 			return null; 
 		}		

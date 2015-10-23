@@ -21,7 +21,7 @@ import uk.ac.ox.cs.JRDFox.store.TupleIterator;
 import uk.ac.ox.cs.pagoda.MyPrefixes;
 import uk.ac.ox.cs.pagoda.constraints.BottomStrategy;
 import uk.ac.ox.cs.prism.PrisM.InseparabilityRelation;
-import uk.ac.ox.cs.prism.util.Utility_tme;
+import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
 public class ABoxManager {
 
@@ -49,16 +49,16 @@ public class ABoxManager {
 		if (!insepRel.equals(InseparabilityRelation.WEAK_QUERY_INSEPARABILITY)){
 			for (OWLEntity e : signature){
 				if (e instanceof OWLClass){
-					addToInitialABox(Utility_tme.print((OWLClass) e, indManager.getInstanceIndividual(e)), out);
+					addToInitialABox(Utility_PrisM.print((OWLClass) e, indManager.getInstanceIndividual(e)), out);
 				}
 				else if (e instanceof OWLObjectProperty){
 					if (twoDifferentIndividuals4PropertyInstantiation){//we don't need to ask about the module type, the individual manager will know that already
 						Individual[] i = indManager.getInstanceIndividuals((OWLObjectProperty) e);
-						addToInitialABox(Utility_tme.print((OWLObjectProperty) e, i[0], i[1]),out);
+						addToInitialABox(Utility_PrisM.print((OWLObjectProperty) e, i[0], i[1]),out);
 					}
 					else{
 						Individual i = indManager.getInstanceIndividual(e);
-						addToInitialABox(Utility_tme.print((OWLObjectProperty) e, i, i),out);
+						addToInitialABox(Utility_PrisM.print((OWLObjectProperty) e, i, i),out);
 					}
 				}
 				else {
@@ -109,7 +109,7 @@ public class ABoxManager {
 					String bottomPredicate = bottomStrategy.getEmptyHead(X)[0].getDLPredicate().toString();
 					String trackingPredicate = trEncoder.getTrackingPredicate(MyPrefixes.PAGOdAPrefixes.getHermiTPrefixes().expandAbbreviatedIRI(bottomPredicate));
 					
-					addToTrackingABox(Utility_tme.print(trackingPredicate, s), out);
+					addToTrackingABox(Utility_PrisM.print(trackingPredicate, s), out);
 				}
 			}	
 		}
@@ -184,7 +184,7 @@ public class ABoxManager {
 				if (groundTerm instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 					String s = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm).getIRI();
 					if (classes.contains(s))
-						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(s), i), out);
+						addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(s), i), out);
 				}
 			}
 		}
@@ -207,7 +207,7 @@ public class ABoxManager {
 				if (groundTerm instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 					String s = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm).getIRI();
 					if (isSameAsPredicate(s) || properties.contains(s))
-						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(s), i, i),out);
+						addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(s), i, i),out);
 				}
 			}
 		}
@@ -244,7 +244,7 @@ public class ABoxManager {
 					String a = ((uk.ac.ox.cs.JRDFox.model.Individual)arg).getIRI();
 					String c = ((uk.ac.ox.cs.JRDFox.model.Individual)cls).getIRI();
 					if (classes.contains(c))
-						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(c), a), out);
+						addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(c), a), out);
 				}
 			}
 		}
@@ -269,7 +269,7 @@ public class ABoxManager {
 					String p = ((uk.ac.ox.cs.JRDFox.model.Individual)prop).getIRI();
 					String a2 = ((uk.ac.ox.cs.JRDFox.model.Individual)arg2).getIRI();
 					if (isSameAsPredicate(p) || properties.contains(p))
-						addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(p), a1, a2), out);
+						addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(p), a1, a2), out);
 				}
 			}
 		}
@@ -290,9 +290,9 @@ public class ABoxManager {
 		for (OWLEntity e : signature){
 			i = indManager.getInstanceIndividual(e);
 			if (e instanceof OWLClass)
-				addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(((OWLClass) e).toStringID()), i), out);
+				addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(((OWLClass) e).toStringID()), i), out);
 			else if (e instanceof OWLObjectProperty)
-				addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(((OWLObjectProperty) e).toStringID()), i, i), out);
+				addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(((OWLObjectProperty) e).toStringID()), i, i), out);
 			else 
 				throw new IllegalArgumentException("module extraction supported for signatures containing only classes and objectProperties");
 		}
@@ -315,7 +315,7 @@ public class ABoxManager {
 						groundTerm2 instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 					String s1 = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm1).getIRI();//.replace("<", "").replace(">", "");
 					String s2 = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm2).getIRI();//.replace("<", "").replace(">", "");
-					addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate("<http://www.w3.org/2002/07/owl#sameAs>"), Individual.create(s1), Individual.create(s2)), out);
+					addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate("<http://www.w3.org/2002/07/owl#sameAs>"), Individual.create(s1), Individual.create(s2)), out);
 				}
 			}
 		}
@@ -355,7 +355,7 @@ public class ABoxManager {
 						if (cls instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 							String c = ((uk.ac.ox.cs.JRDFox.model.Individual)cls).getIRI();
 							if (!c.equals(e.toStringID()) && classes.contains(c))
-								addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(c), i), out);
+								addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(c), i), out);
 						}
 					}
 				}
@@ -388,7 +388,7 @@ public class ABoxManager {
 						if (prop instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 							String p = ((uk.ac.ox.cs.JRDFox.model.Individual)prop).getIRI();
 							if (isSameAsPredicate(p) || (!p.equals(e.toStringID()) && properties.contains(p)))
-								addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(p), i[0], i[1]), out);
+								addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(p), i[0], i[1]), out);
 						}
 					}
 				}
@@ -432,7 +432,7 @@ public class ABoxManager {
 						if (cls instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 							String c = ((uk.ac.ox.cs.JRDFox.model.Individual)cls).getIRI();
 							if (!c.equals(e.toStringID()) && !builtInClass(c)){
-								addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(c), i), out);
+								addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(c), i), out);
 							}
 						}
 					}
@@ -466,7 +466,7 @@ public class ABoxManager {
 						if (prop instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 							String p = ((uk.ac.ox.cs.JRDFox.model.Individual)prop).getIRI();
 							if (isSameAsPredicate(p) || (!p.equals(e.toStringID()) && !builtInProperty(p))){
-								addToTrackingABox(Utility_tme.print(trEncoder.getTrackingPredicate(p), i[0], i[1]), out);
+								addToTrackingABox(Utility_PrisM.print(trEncoder.getTrackingPredicate(p), i[0], i[1]), out);
 							}
 						}
 					}

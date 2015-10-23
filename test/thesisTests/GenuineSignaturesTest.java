@@ -25,7 +25,7 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import uk.ac.ox.cs.JRDFox.JRDFStoreException;
 import uk.ac.ox.cs.prism.PrisM;
 import uk.ac.ox.cs.prism.PrisM.InseparabilityRelation;
-import uk.ac.ox.cs.prism.util.Utility_tme;
+import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
 
 public class GenuineSignaturesTest {
@@ -88,15 +88,15 @@ public class GenuineSignaturesTest {
 			int to = Integer.parseInt(args[1]);
 			if (to > 0)
 			timeoutSecs = to;
-			Utility_tme.logInfo("timeout of " + timeoutSecs + "s is active? " + timeout);
+			Utility_PrisM.logInfo("timeout of " + timeoutSecs + "s is active? " + timeout);
 		}
 		if (args.length>2){
 			nIterations = Integer.parseInt(args[2]);
-			Utility_tme.logInfo(nIterations + " iterations");
+			Utility_PrisM.logInfo(nIterations + " iterations");
 		}
 		if (args.length>3){
 			nThreads = Integer.parseInt(args[3]);
-			Utility_tme.logInfo(nThreads + " threads");
+			Utility_PrisM.logInfo(nThreads + " threads");
 		}
 
 		

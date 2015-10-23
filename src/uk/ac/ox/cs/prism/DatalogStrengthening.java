@@ -1,10 +1,11 @@
-package uk.ac.ox.cs.pagoda.rules;
+package uk.ac.ox.cs.prism;
 
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,9 +13,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
-import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.HermiT.model.AnnotatedEquality;
 import org.semanticweb.HermiT.model.Atom;
 import org.semanticweb.HermiT.model.AtomicConcept;
@@ -23,18 +24,17 @@ import org.semanticweb.HermiT.model.AtomicNegationDataRange;
 import org.semanticweb.HermiT.model.AtomicRole;
 import org.semanticweb.HermiT.model.ConstantEnumeration;
 import org.semanticweb.HermiT.model.DLClause;
-import org.semanticweb.HermiT.model.DLOntology;
 import org.semanticweb.HermiT.model.DLPredicate;
 import org.semanticweb.HermiT.model.Equality;
 import org.semanticweb.HermiT.model.Inequality;
 import org.semanticweb.HermiT.model.InverseRole;
 import org.semanticweb.HermiT.model.Term;
 import org.semanticweb.HermiT.model.Variable;
-import org.semanticweb.HermiT.structural.OWLClausification;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
+import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -48,81 +48,92 @@ import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import org.semanticweb.simpleETL.SimpleETL;
 
 import uk.ac.ox.cs.pagoda.MyPrefixes;
-import uk.ac.ox.cs.pagoda.approx.KnowledgeBase;
 import uk.ac.ox.cs.pagoda.approx.RLPlusOntology;
 import uk.ac.ox.cs.pagoda.constraints.BottomStrategy;
 import uk.ac.ox.cs.pagoda.constraints.NullaryBottom;
-import uk.ac.ox.cs.pagoda.constraints.PredicateDependency;
 import uk.ac.ox.cs.pagoda.hermit.DLClauseHelper;
 import uk.ac.ox.cs.pagoda.owl.OWLHelper;
+import uk.ac.ox.cs.pagoda.rules.Approximator;
 import uk.ac.ox.cs.pagoda.util.Utility;
+import uk.ac.ox.cs.prism.clausification.DLOntology_withMaps;
+import uk.ac.ox.cs.prism.clausification.OWLClausification_withMaps;
+import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
-@Deprecated
-public abstract class Program implements KnowledgeBase {
-	
+public class DatalogStrengthening {
+
 	protected String ontologyDirectory = null;
 	protected OWLOntology ontology; 
-	protected DLOntology dlOntology;
+	protected DLOntology_withMaps dlOntology;	//stores the correspondence between (non-overapproximated) DLCLauses and the original axioms that lead to them
 	protected BottomStrategy botStrategy; 
 
 	protected String additionalDataFile = null; 
-	
-	protected Collection<DLClause> clauses = new LinkedList<DLClause>();
-//	protected PredicateDependency dependencyGraph; 
-	
+	protected OWLOntology aBox;
+
+//	protected Collection<DLClause> clauses = new LinkedList<DLClause>();
+	protected Collection<DLClause> additionalClauses = new LinkedList<DLClause>();
+
+	protected Approximator m_approx = null; 
+	boolean containsEquality = false;
+	Set<AtomicRole> binaryPredsOnBodies = new HashSet<AtomicRole>();
+
+	protected LinkedList<OWLTransitiveObjectPropertyAxiom> transitiveAxioms;
+	protected LinkedList<OWLSubPropertyChainOfAxiom> subPropChainAxioms; 
+
 	/**
-	 * clone all information of another program after load()
-	 * 
-	 * @param program
+	 * mapping from over-approximated DLClauses to DLClauses from the original ontology
 	 */
-	void clone(Program program) {
-		this.ontologyDirectory = program.ontologyDirectory; 
-		this.ontology = program.ontology; 
-		this.dlOntology = program.dlOntology;
-		this.botStrategy = program.botStrategy; 
-		this.additionalDataFile = program.additionalDataFile; 
-		this.transitiveAxioms = program.transitiveAxioms;  
-		this.transitiveClauses = program.transitiveClauses; 
-		this.subPropChainAxioms = program.subPropChainAxioms; 
-		this.subPropChainClauses = program.subPropChainClauses; 
+	protected Map<DLClause, Object> correspondence = new HashMap<DLClause, Object>();
+	protected Map<OWLIndividualAxiom, Collection<OWLAxiom>> aBoxCorrespondence = new HashMap<OWLIndividualAxiom, Collection<OWLAxiom>>(); 
+
+	public DatalogStrengthening(IndividualManager indManager){
+		m_approx = new OverApproxForTailoredModuleExtraction(indManager);
 	}
-	
+
 	public void load(OWLOntology o, BottomStrategy botStrategy) {
 		this.botStrategy = botStrategy; 
 		RLPlusOntology owlOntology = new RLPlusOntology(); 
 		owlOntology.load(o, new NullaryBottom());
 		owlOntology.simplify();
-
 		ontology = owlOntology.getTBox(); 
 		String ontologyPath = OWLHelper.getOntologyPath(ontology); 
-		ontologyDirectory = ontologyPath.substring(0, ontologyPath.lastIndexOf(Utility.FILE_SEPARATOR));
+		ontologyDirectory = ontologyPath.substring(0, ontologyPath.lastIndexOf("/")); // Really is a '/' not the system file separator.
 		clausify(); 
-		
+		transform();
+
 		String aboxOWLFile = owlOntology.getABoxPath();
-		OWLOntology abox = OWLHelper.loadOntology(aboxOWLFile);
-		OWLOntologyManager manager = abox.getOWLOntologyManager(); 
-		OWLAxiom axiom; 
-		for (Atom atom: dlOntology.getPositiveFacts()) {
-			if ((axiom = OWLHelper.getABoxAssertion(manager.getOWLDataFactory(), atom)) != null)
-				manager.addAxiom(abox, axiom); 
+		aBox = OWLHelper.loadOntology(aboxOWLFile);
+		for (OWLAxiom ax : aBox.getABoxAxioms(true)) {
+			Set<OWLAxiom> aux = new HashSet<OWLAxiom>();
+			aux.add(ax);
+			aBoxCorrespondence.put((OWLIndividualAxiom) ax, aux);
 		}
-		
+		OWLOntologyManager manager = aBox.getOWLOntologyManager();
+		OWLIndividualAxiom axiom;
+		for (Entry<Atom,Collection<OWLAxiom>> entry : dlOntology.getPositiveFactsMap().entrySet())
+			if ((axiom = OWLHelper.getABoxAssertion(manager.getOWLDataFactory(), entry.getKey())) != null) {
+				manager.addAxiom(aBox, axiom);
+				Collection<OWLAxiom> aux = aBoxCorrespondence.get(axiom);
+				if (aux == null)
+					aBoxCorrespondence.put(axiom, entry.getValue());
+				else 
+					aux.addAll(entry.getValue());
+			}
+			else
+				Utility_PrisM.logDebug("got null assertion corresponding to " + entry.getKey().toString());
+
 		try {
 			FileOutputStream out = new FileOutputStream(aboxOWLFile); 
-			manager.saveOntology(abox, out);
+			manager.saveOntology(aBox, out);
 			out.close();
 		} catch (OWLOntologyStorageException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		if (!abox.isEmpty()) {
+
+		if (!aBox.isEmpty()) {
 			SimpleETL rewriter = new SimpleETL(owlOntology.getOntologyIRI(), aboxOWLFile);
 			try {
 				rewriter.rewrite();
@@ -131,12 +142,10 @@ public abstract class Program implements KnowledgeBase {
 			} 
 			additionalDataFile = rewriter.getExportedFile(); 
 		}
-		
 	}
-	
+
 	protected void clausify() {
-		Configuration conf = new Configuration();
-		OWLClausification clausifier = new OWLClausification(conf);
+		OWLClausification_withMaps clausifier = new OWLClausification_withMaps();
 		OWLOntology filteredOntology = null;
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		try {
@@ -144,70 +153,93 @@ public abstract class Program implements KnowledgeBase {
 		} catch (OWLOntologyCreationException e) {
 			e.printStackTrace();
 		}
-		
+
 		transitiveAxioms = new LinkedList<OWLTransitiveObjectPropertyAxiom>();
 		subPropChainAxioms = new LinkedList<OWLSubPropertyChainOfAxiom>();
-		
-		int noOfDataPropertyRangeAxioms = 0, noOfAxioms = 0; 
+		//		equalityAssertionAxioms = new LinkedList<OWLSameIndividualAxiom>();
+		//		inequalityAssertionAxioms = new LinkedList<OWLDifferentIndividualsAxiom>();
+		//		negativeAssertions = new LinkedList<OWLAxiom>();
+
+		//		int noOfDataPropertyRangeAxioms = 0, noOfAxioms = 0; 
 		for (OWLOntology onto: ontology.getImportsClosure())
 			for (OWLAxiom axiom: onto.getAxioms()) {
 				if (axiom instanceof OWLTransitiveObjectPropertyAxiom) 
 					transitiveAxioms.add((OWLTransitiveObjectPropertyAxiom) axiom);
 				else if (axiom instanceof OWLSubPropertyChainOfAxiom) 
 					subPropChainAxioms.add((OWLSubPropertyChainOfAxiom) axiom);
+				//				else if (axiom instanceof OWLSameIndividualAxiom)
+				//					equalityAssertionAxioms.add((OWLSameIndividualAxiom) axiom);
+				//				else if (axiom instanceof OWLDifferentIndividualsAxiom)
+				//					inequalityAssertionAxioms.add((OWLDifferentIndividualsAxiom) axiom);
+				//				else if (axiom instanceof OWLNegativeObjectPropertyAssertionAxiom) //why not let the DLOntology process the negative facts? 
+				//					negativeAssertions.add(axiom);
+				//				else if (axiom instanceof OWLNegativeDataPropertyAssertionAxiom) //why not let the DLOntology process the negative facts?
+				//					negativeAssertions.add(axiom);
 				// TODO to filter out datatype axioms
-				else if (axiom instanceof OWLDataPropertyRangeAxiom) {
-					++noOfDataPropertyRangeAxioms; 
+				else if (axiom instanceof OWLDataPropertyRangeAxiom) {//FIXME decide what to do about dataproperties in general
+					//					++noOfDataPropertyRangeAxioms; 
 				}
 				else {
 					manager.addAxiom(filteredOntology, axiom);
 				}
-				
+
 				if (axiom instanceof OWLAnnotationAssertionAxiom ||
 						axiom instanceof OWLSubAnnotationPropertyOfAxiom ||
 						axiom instanceof OWLDeclarationAxiom ||
 						axiom instanceof OWLDataPropertyRangeAxiom); 
-				else {
-//					System.out.println(axiom); 
-					++noOfAxioms;
-				}
-					
+				//				else {
+				//					++noOfAxioms;
+				//				}
+
 			}
-		Utility.logInfo("The number of data property range axioms that are ignored: " + noOfDataPropertyRangeAxioms + "(" + noOfAxioms + ")");
-		
-		dlOntology = (DLOntology)clausifier.preprocessAndClausify(filteredOntology, null)[1];
+		//		Utility.logInfo("The number of data property range axioms that are ignored: " + noOfDataPropertyRangeAxioms + "(" + noOfAxioms + ")");//FIXME
+
+		dlOntology = clausifier.preprocessAndClausify(filteredOntology);
 		clausifier = null;
-	}
-	
+	}//DONE
+
 	public String getAdditionalDataFile() {
 		return additionalDataFile; 
 	}
 
-	protected LinkedList<OWLTransitiveObjectPropertyAxiom> transitiveAxioms;
-	protected LinkedList<DLClause> transitiveClauses;
-	
-	protected LinkedList<OWLSubPropertyChainOfAxiom> subPropChainAxioms; 
-	protected LinkedList<DLClause> subPropChainClauses;
-	
 	public void transform() {
-		for (DLClause dlClause: dlOntology.getDLClauses()) {
-			DLClause simplifiedDLClause = DLClauseHelper.removeNominalConcept(dlClause);
+		for (Entry<DLClause,Collection<OWLAxiom>> entry : dlOntology.getDLClausesMap().entrySet()) {
+			DLClause simplifiedDLClause = DLClauseHelper.removeNominalConcept(entry.getKey()); //HERE
 			simplifiedDLClause = removeAuxiliaryBodyAtoms(simplifiedDLClause);
 			simplifiedDLClause  = DLClauseHelper.replaceWithDataValue(simplifiedDLClause);
-			convert(simplifiedDLClause);
+
+			Collection<DLClause> convertedClauses = botStrategy.process(m_approx.convert(simplifiedDLClause, simplifiedDLClause));
+			for (DLClause newClause: convertedClauses) {
+				addCorrespondence(newClause, entry.getKey());
+
+				//register the binary predicates in its body
+				for (Atom at : newClause.getBodyAtoms()){
+					DLPredicate pred = at.getDLPredicate();
+					if (pred instanceof AtomicRole) binaryPredsOnBodies.add((AtomicRole) pred);
+				}
+
+				if (!containsEquality) updateContainsEquality(newClause);
+			}
+		}
+
+		for (Entry<Atom,Collection<OWLAxiom>> entry : dlOntology.getNegativeFactsMap().entrySet()) {
+			List<DLClause> aux = new ArrayList<DLClause>();
+			aux.add(DLClause.create(new Atom[0], new Atom[] {entry.getKey()}));
+			for (DLClause clause : botStrategy.process(aux)){
+				addCorrespondence(clause, entry.getValue());
+			}
 		}
 
 		addingTransitiveAxioms();
 		addingSubPropertyChainAxioms();
-		
+
 		Collection<DLClause> botRelated = new LinkedList<DLClause>(); 
 		Variable X = Variable.create("X"); 
 		botRelated.add(DLClause.create(new Atom[0], new Atom[] {Atom.create(Inequality.INSTANCE, X, X)}));
-		clauses.addAll(botStrategy.process(botRelated)); 
-		
-	}
-	
-	protected DLClause removeAuxiliaryBodyAtoms(DLClause dlClause) {
+		additionalClauses.addAll(botStrategy.process(botRelated));
+	}//DONE
+
+	private DLClause removeAuxiliaryBodyAtoms(DLClause dlClause) {
 		Collection<Atom> newBodyAtoms = new LinkedList<Atom>();
 		DLPredicate p; 
 		for (Atom bodyAtom: dlClause.getBodyAtoms()) {
@@ -227,14 +259,14 @@ public abstract class Program implements KnowledgeBase {
 					newBodyAtoms.add(Atom.create(positive, headAtom.getArgument(0)));
 				else if (((ConstantEnumeration) positive).getNumberOfConstants() == 1) {
 					assign.put((Variable) headAtom.getArgument(0), ((ConstantEnumeration) positive).getConstant(0)); 
-//					newBodyAtoms.add(Atom.create(Equality.INSTANCE, headAtom.getArgument(0), ((ConstantEnumeration) positive).getConstant(0))); 
+					//					newBodyAtoms.add(Atom.create(Equality.INSTANCE, headAtom.getArgument(0), ((ConstantEnumeration) positive).getConstant(0))); 
 				}
 				else newHeadAtoms.add(headAtom); 
 			}
 			else 
 				newHeadAtoms.add(headAtom); 
 		}
-		
+
 		if (assign.isEmpty() && newHeadAtoms.isEmpty() && newBodyAtoms.size() == dlClause.getBodyLength())
 			return dlClause; 
 
@@ -253,19 +285,18 @@ public abstract class Program implements KnowledgeBase {
 		DLClause transitiveClause;
 		Atom headAtom;
 		Variable X = Variable.create("X"), Y = Variable.create("Y"), Z = Variable.create("Z");
-		transitiveClauses = new LinkedList<DLClause>();
-		for (OWLTransitiveObjectPropertyAxiom axiom: transitiveAxioms) {
+		Iterator<OWLTransitiveObjectPropertyAxiom> iter = transitiveAxioms.iterator();
+		while (iter.hasNext()){
+			OWLTransitiveObjectPropertyAxiom axiom = iter.next();
 			OWLObjectPropertyExpression objExp = axiom.getProperty(); 
 			headAtom = getAtom(objExp, X, Z);
-			Atom[] bodyAtoms = new Atom[2];
-			bodyAtoms[0] = getAtom(objExp, X, Y); 
-			bodyAtoms[1] = getAtom(objExp, Y, Z); 
-			transitiveClause = DLClause.create(new Atom[] {headAtom}, bodyAtoms); 
-			clauses.add(transitiveClause);
-			transitiveClauses.add(transitiveClause);
+			if (binaryPredsOnBodies.contains((AtomicRole) headAtom.getDLPredicate())){
+				transitiveClause = DLClause.create(new Atom[] {headAtom}, new Atom[]{getAtom(objExp, X, Y), getAtom(objExp, Y, Z)}); 
+				addCorrespondence(transitiveClause, axiom);
+			}
 		}
-	}
-	
+	}//DONE
+
 	protected Atom getAtom(OWLObjectPropertyExpression exp, Variable x, Variable y) {
 		if (exp instanceof OWLObjectProperty)
 			return Atom.create(AtomicRole.create(((OWLObjectProperty) exp).toStringID()), x, y);
@@ -273,11 +304,10 @@ public abstract class Program implements KnowledgeBase {
 		if (exp instanceof OWLObjectInverseOf && (inverseOf = (OWLObjectInverseOf) exp).getInverse() instanceof OWLObjectProperty)
 			return Atom.create(AtomicRole.create(((OWLObjectProperty) inverseOf).toStringID()), x, y);
 		return null;
-	}
+	}//DONE
 
 	protected void addingSubPropertyChainAxioms() {
 		DLClause dlClause; 
-		subPropChainClauses = new LinkedList<DLClause>();
 		Atom headAtom;
 		Iterator<OWLObjectPropertyExpression> iterExp; 
 		OWLObjectPropertyExpression objExp; 
@@ -294,10 +324,9 @@ public abstract class Program implements KnowledgeBase {
 				++index; 
 			}
 			dlClause = DLClause.create(new Atom[] {headAtom}, bodyAtoms); 
-			clauses.add(dlClause); 
-			subPropChainClauses.add(dlClause); 
+			addCorrespondence(dlClause, axiom);
 		}
-	}
+	}//DONE
 
 	public void save() {
 		try {
@@ -310,37 +339,126 @@ public abstract class Program implements KnowledgeBase {
 		}
 		Utility.logDebug("The rules are saved in " + getOutputPath() + "."); 
 	}
-	
+
 	@Override
 	public String toString() {
-		return toString(clauses); 
-	}
-	
+		Collection<DLClause> clauses = new HashSet<DLClause>(correspondence.keySet());
+		clauses.addAll(additionalClauses);
+		return toString(clauses);
+	}//DONE
+
 	public static String toString(Collection<DLClause> clauses) {
 		StringBuilder sb = new StringBuilder(DLClauseHelper.toString(clauses)); 
 		sb.insert(0, MyPrefixes.PAGOdAPrefixes.prefixesText()); 
 		return sb.toString(); 
-	}
-	
-	public final void convert(DLClause clause) {
-		Collection<DLClause> tempClauses = convert2Clauses(clause);
-		clauses.addAll(tempClauses);
-	}
-	
-	public abstract Collection<DLClause> convert2Clauses(DLClause clause);
+	}//DONE
 
-	public abstract String getOutputPath();
-	
-	
+	protected void updateContainsEquality(DLClause clause){
+		if (clause.getHeadAtom(0).getDLPredicate().toString().contains("==")){
+			containsEquality = true;
+			Utility.logDebug("# contains equality");
+		}
+	}//DONE
+
+	public boolean containsEquality(){
+		return containsEquality;
+	}
+
+	//copied from class ApproxProgram in PAGOdA and modified
+	@SuppressWarnings("unchecked")
+	private void addCorrespondence(DLClause newClause, Object corresponding) {
+		//corresponding could be a DLClause or an OWLAxiom
+		//or even a set of DLClause and/or OWLAxiom
+		Object originalCorrespondent = correspondence.get(newClause); 
+		if (originalCorrespondent != null) {
+			if (originalCorrespondent.equals(corresponding))
+				return ; 
+			else if (originalCorrespondent instanceof Set<?>){
+				if (corresponding instanceof Set<?>)
+					((Set<Object>) originalCorrespondent).addAll((Set<Object>) corresponding);
+				else
+					((Set<Object>) originalCorrespondent).add(corresponding);
+			}
+			else  {
+				HashSet<Object> aux = new HashSet<Object>();
+				aux.add(originalCorrespondent);
+				if (corresponding instanceof Set<?>)
+					aux.addAll((Set<Object>) corresponding);
+				else
+					aux.add(corresponding);
+				correspondence.put(newClause, aux);
+			}
+		}
+		else 
+			correspondence.put(newClause, corresponding);
+	}//DONE
+
+	//will need this method for TrackingRuleEncoderDisjVar4TailoredModuleExtraction
+//	public Set<DLClause> getCorrespondingClauses(DLClause clause) {
+//		Object obj = correspondence.get(clause);
+//		if (obj instanceof Set<?>)
+//			return (Set<DLClause>) obj;
+//		else {
+//			//obj is null or an OWLAxiom; in either case we want to return clause
+//			//it may be null because clause is a clause from the original program 
+//			//(e.g. a disjunctive clause) and not its corresponding rule in the overapprox 
+//			//this may happen when we use the DisjVar TrackingRuleEncoding
+//			Set<DLClause> aux = new HashSet<DLClause>();
+//			aux.add(clause);
+//			return aux;
+//		}
+//	}
+
+	public Set<OWLAxiom> getCorrespondingAxioms(DLClause clause) {
+		Set<OWLAxiom> ret = new HashSet<OWLAxiom>();
+		Object obj = correspondence.get(clause);
+		
+		if (obj instanceof OWLAxiom) 
+			ret.add((OWLAxiom) obj);
+		else if (obj instanceof DLClause) {
+			Collection<OWLAxiom> aux = dlOntology.getDLClausesMap().get(obj);
+			if (aux != null)
+				ret.addAll(dlOntology.getDLClausesMap().get(obj));
+		}
+		else {//obj must be a set containing instances of DLClause and/or of OWLAxiom
+			for (Object o : (Set<Object>) obj) {
+				if (o instanceof OWLAxiom) ret.add((OWLAxiom) o);
+				else ret.addAll(dlOntology.getCorrespondingAxioms((DLClause) o));
+			}
+		}
+		return ret;
+	}
+
+	public Collection<OWLAxiom> getCorrespondingAxioms(OWLIndividualAxiom axiom) {
+		Collection<OWLAxiom> ret = aBoxCorrespondence.get(axiom);
+		return ret == null ? new HashSet<OWLAxiom>() : ret;
+	}
+
+
+	public Collection<OWLIndividualAxiom> getABoxAxioms(){
+		return aBoxCorrespondence.keySet();
+	}
+
+	public String getOutputPath() {
+		return getDirectory() + Utility.FILE_SEPARATOR + "upper.dlog";
+	}
+
 	public OWLOntology getOntology() {
 		return ontology;
 	}
-	
+
 	public Collection<DLClause> getClauses() {
+		Collection<DLClause> clauses = new HashSet<DLClause>(correspondence.keySet());
+		clauses.addAll(additionalClauses);
 		return clauses;
 	}
-	
+
+	public int getNclauses() {
+		return additionalClauses.size() + correspondence.size();
+	}
+
 	public final String getDirectory() {
 		return Utility.TempDirectory; 
 	}
+
 }

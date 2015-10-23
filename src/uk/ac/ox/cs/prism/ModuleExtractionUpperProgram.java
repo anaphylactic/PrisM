@@ -19,6 +19,7 @@ import org.semanticweb.HermiT.model.DLClause;
 import org.semanticweb.HermiT.model.DLOntology;
 import org.semanticweb.HermiT.model.DLPredicate;
 import org.semanticweb.HermiT.model.Individual;
+import org.semanticweb.HermiT.model.Inequality;
 import org.semanticweb.HermiT.model.Variable;
 import org.semanticweb.HermiT.structural.OWLClausification;
 import org.semanticweb.owlapi.model.IRI;
@@ -48,20 +49,26 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.ox.cs.pagoda.approx.RLPlusOntology;
 import uk.ac.ox.cs.pagoda.constraints.BottomStrategy;
 import uk.ac.ox.cs.pagoda.constraints.NullaryBottom;
+import uk.ac.ox.cs.pagoda.hermit.DLClauseHelper;
 import uk.ac.ox.cs.pagoda.owl.OWLHelper;
 import uk.ac.ox.cs.pagoda.rules.Approximator;
 import uk.ac.ox.cs.pagoda.rules.Program;
 import uk.ac.ox.cs.pagoda.util.Namespace;
 import uk.ac.ox.cs.pagoda.util.Utility;
-import uk.ac.ox.cs.prism.util.Utility_tme;
+import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
+@Deprecated
 public class ModuleExtractionUpperProgram extends Program{
 
 	/**
 	 * mapping from over-approximated DLClauses to DLClauses from the original ontology
 	 */
 	Map<DLClause, Object> correspondence = new HashMap<DLClause, Object>();
-	Map<OWLAxiom, OWLAxiom> aBoxCorrespondence = new HashMap<OWLAxiom, OWLAxiom>();
+	Map<OWLAxiom, OWLAxiom> aBoxCorrespondence = new HashMap<OWLAxiom, OWLAxiom>(); //I don't think I need this anymore because the only facts arising form strengthening are the ones in the skolem ABox, which is stored separately 
+
+	//the dlOntology stores the correspondence between (non-overapproximated) DLCLauses and the original axioms that lead to them
+
+	
 	protected Approximator m_approx = null; 
 	boolean containsEquality = false;
 	Set<AtomicRole> binaryPredsOnBodies = new HashSet<AtomicRole>();
@@ -88,12 +95,10 @@ public class ModuleExtractionUpperProgram extends Program{
 
 		ontology = owlOntology.getTBox(); 
 		String ontologyPath = OWLHelper.getOntologyPath(ontology); 
-		// Really is a '/' not the system file seperator.
+		// Really is a '/' not the system file separator.
 		ontologyDirectory = ontologyPath.substring(0, ontologyPath.lastIndexOf("/"));
 		clausify(); 
 		transform();
-		
-		
 		
 		String aboxOWLFile = owlOntology.getABoxPath();
 		aBox = OWLHelper.loadOntology(aboxOWLFile);
@@ -104,6 +109,8 @@ public class ModuleExtractionUpperProgram extends Program{
 				manager.addAxiom(aBox, axiom);
 		}
 		addingEqualityRelatedAssertions();
+		
+		//What about dlOntology.getNegativeFacts?
 		
 		try {
 			FileOutputStream out = new FileOutputStream(aboxOWLFile); 
@@ -158,9 +165,9 @@ public class ModuleExtractionUpperProgram extends Program{
 					equalityAssertionAxioms.add((OWLSameIndividualAxiom) axiom);
 				else if (axiom instanceof OWLDifferentIndividualsAxiom)
 					inequalityAssertionAxioms.add((OWLDifferentIndividualsAxiom) axiom);
-				else if (axiom instanceof OWLNegativeObjectPropertyAssertionAxiom)
+				else if (axiom instanceof OWLNegativeObjectPropertyAssertionAxiom) //why not let the DLOntology process the negative facts? 
 					negativeAssertions.add(axiom);
-				else if (axiom instanceof OWLNegativeDataPropertyAssertionAxiom)
+				else if (axiom instanceof OWLNegativeDataPropertyAssertionAxiom) //why not let the DLOntology process the negative facts?
 					negativeAssertions.add(axiom);
 				// TODO to filter out datatype axioms
 				else if (axiom instanceof OWLDataPropertyRangeAxiom) {
@@ -187,7 +194,29 @@ public class ModuleExtractionUpperProgram extends Program{
 	
 	@Override //copied from class ApproxProgram in Pagoda
 	public void transform() {
-		super.transform();
+//		super.transform();
+//		{
+		for (DLClause dlClause: dlOntology.getDLClauses()) {
+			DLClause simplifiedDLClause = DLClauseHelper.removeNominalConcept(dlClause);
+			simplifiedDLClause = removeAuxiliaryBodyAtoms(simplifiedDLClause);
+			simplifiedDLClause  = DLClauseHelper.replaceWithDataValue(simplifiedDLClause);
+			convert(simplifiedDLClause);
+		}
+
+		addingTransitiveAxioms();
+		addingSubPropertyChainAxioms();
+		
+		Collection<DLClause> botRelated = new LinkedList<DLClause>(); 
+		Variable X = Variable.create("X"); 
+		botRelated.add(DLClause.create(new Atom[0], new Atom[] {Atom.create(Inequality.INSTANCE, X, X)}));
+		clauses.addAll(botStrategy.process(botRelated)); 
+		
+//		if (this instanceof GeneralProgram)
+//			Utility.logInfo("The number of rules: " + (clauses.size() - 1));
+//		}
+		
+		//TODO process negative facts here too!
+		
 		addingNegativeAssertions();
 	}
 	
@@ -253,7 +282,7 @@ public class ModuleExtractionUpperProgram extends Program{
 			}
 			//TODO deal with the case of NegativeDataPropertyAssertionAxiom
 			else if (axiom instanceof OWLNegativeDataPropertyAssertionAxiom){
-				Utility_tme.logDebug("there was an OWLNegativeDataPropertyAssertionAxiom that ahd to be ignored: " + axiom.toString());
+				Utility_PrisM.logDebug("there was an OWLNegativeDataPropertyAssertionAxiom that had to be ignored: " + axiom.toString());
 			}
 			for (DLClause clause : botStrategy.process(negAssertionClauses)){
 				clauses.add(clause);

@@ -28,7 +28,7 @@ import uk.ac.ox.cs.JRDFox.store.DataStore.UpdateType;
 import uk.ac.ox.cs.pagoda.constraints.BottomStrategy;
 import uk.ac.ox.cs.pagoda.constraints.UnaryBottom;
 import uk.ac.ox.cs.pagoda.util.Utility;
-import uk.ac.ox.cs.prism.util.Utility_tme;
+import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
 public class PrisM{
 
@@ -93,7 +93,7 @@ public class PrisM{
 		initStartingModule(signature, viaSyntacticLocality);
 
 		BottomStrategy bottomStrategy = new UnaryBottom();
-		ModuleExtractionUpperProgram program = initProgram(bottomStrategy);
+		DatalogStrengthening program = computeStrengthening(bottomStrategy);
 		//it is important that the program is initialised before the initial ABox so any necessary Skolem constants etc are created first
 
 		aboxManager = new ABoxManager(signature, startingModule.getIndividualsInSignature(), insepRel, indManager);
@@ -131,14 +131,14 @@ public class PrisM{
 				if (insepRel == InseparabilityRelation.CLASSIFICATION_INSEPARABILITY){
 					SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, ontology, ModuleType.BOT);
 					startingModule = extractor.extractAsOntology(signature, IRI.create(moduleIRI));
-					Utility_tme.logDebug("# we start from OWLAPI BOT-module");
-					Utility_tme.logDebug("# which contains " + startingModule.getAxiomCount());
+					Utility_PrisM.logDebug("# we start from OWLAPI BOT-module");
+					Utility_PrisM.logDebug("# which contains " + startingModule.getAxiomCount());
 				}
 				else{
 					SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, ontology, ModuleType.STAR);
 					startingModule = extractor.extractAsOntology(signature, IRI.create(moduleIRI));
-					Utility_tme.logDebug("# we start from OWLAPI STAR-module");
-					Utility_tme.logDebug("# which contains " + startingModule.getAxiomCount());
+					Utility_PrisM.logDebug("# we start from OWLAPI STAR-module");
+					Utility_PrisM.logDebug("# which contains " + startingModule.getAxiomCount());
 				}	
 
 			} catch (OWLOntologyCreationException e) {
@@ -166,14 +166,14 @@ public class PrisM{
 	}
 	
 	
-	protected ModuleExtractionUpperProgram initProgram(BottomStrategy bottomStrategy){
+	protected DatalogStrengthening computeStrengthening(BottomStrategy bottomStrategy){
 		Long t = System.currentTimeMillis();
 
-		ModuleExtractionUpperProgram program = new ModuleExtractionUpperProgram(indManager);
+		DatalogStrengthening program = new DatalogStrengthening(indManager);
 		program.load(startingModule, bottomStrategy);
 //		program.transform();//this is done directly as part of the loading now
 
-		Utility_tme.logDebug("# " + program.getClauses().size() + " clauses in program");
+		Utility_PrisM.logDebug("# " + program.getNclauses() + " clauses in program");
 		try {
 			File f = new File(programFileName);
 			PrintWriter programWriter = new PrintWriter(f);
@@ -184,7 +184,7 @@ public class PrisM{
 		}
 
 		t = System.currentTimeMillis() - t;
-		Utility_tme.logDebug("# " + t + "ms to create program");
+		Utility_PrisM.logDebug("# " + t + "ms to create program");
 		t = System.currentTimeMillis();
 
 		return program;
@@ -200,7 +200,7 @@ public class PrisM{
 		}
 	}
 
-	protected DataStore materialise(DataStore store, ModuleExtractionUpperProgram program){
+	protected DataStore materialise(DataStore store, DatalogStrengthening program){
 		Long t = System.currentTimeMillis();
 		try {
 			store.importFiles(new File[]{new File(initialABoxFileName)});			
@@ -208,41 +208,41 @@ public class PrisM{
 			if (originalAbox!=null)  
 				store.importFiles(new File[]{new File(originalAbox)});
 			
-			Utility_tme.logDebug("# Number of tuples after import: " + store.getTriplesCount());
+			Utility_PrisM.logDebug("# Number of tuples after import: " + store.getTriplesCount());
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to load initial facts");
+			Utility_PrisM.logDebug("# " + t + "ms to load initial facts");
 			t = System.currentTimeMillis();
 			
 			if (numberOfThreads > 1){
 				store.setNumberOfThreads(1);
 				t = System.currentTimeMillis() - t;
-				Utility_tme.logDebug("# " + t + "ms to set the number of threads to 1 before loading rules");
+				Utility_PrisM.logDebug("# " + t + "ms to set the number of threads to 1 before loading rules");
 				t = System.currentTimeMillis();
 			}
 
 			store.importFiles(new File[]{new File(programFileName)}, new Prefixes(), UpdateType.Add, true);
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to load rules");
+			Utility_PrisM.logDebug("# " + t + "ms to load rules");
 			t = System.currentTimeMillis();
 
 			if (numberOfThreads > 1){
 				store.setNumberOfThreads(numberOfThreads);
 				t = System.currentTimeMillis() - t;
-				Utility_tme.logDebug("# " + t + "ms to set the number of threads to " + numberOfThreads + " again");
+				Utility_PrisM.logDebug("# " + t + "ms to set the number of threads to " + numberOfThreads + " again");
 				t = System.currentTimeMillis();
 			}
 			
 			store.applyReasoning();
 
-			Utility_tme.logDebug("# Number of tuples after reasoning: " + store.getTriplesCount());
+			Utility_PrisM.logDebug("# Number of tuples after reasoning: " + store.getTriplesCount());
 
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to materialise first time");
+			Utility_PrisM.logDebug("# " + t + "ms to materialise first time");
 			t = System.currentTimeMillis();
 			
 			store.clearRulesAndMakeFactsExplicit();
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to clear rules and make facts explicit");
+			Utility_PrisM.logDebug("# " + t + "ms to clear rules and make facts explicit");
 			t = System.currentTimeMillis();
 			
 		} catch (JRDFStoreException e) {
@@ -264,21 +264,21 @@ public class PrisM{
 		}
 
 		t = System.currentTimeMillis() - t;
-		Utility_tme.logDebug("# " + t + "ms to create tracking ABox");
+		Utility_PrisM.logDebug("# " + t + "ms to create tracking ABox");
 		t = System.currentTimeMillis();
 	}
 	protected void materialiseTracking(DataStore store, TrackingRuleEncoder4TailoredModuleExtraction trEncoder){
 		Long t = System.currentTimeMillis();
 		try {
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to make facts explicit");
+			Utility_PrisM.logDebug("# " + t + "ms to make facts explicit");
 			t = System.currentTimeMillis();
 			
 			store.importFiles(new File[]{new File(trackingABoxFileName)});
 
 			t = System.currentTimeMillis();
 			String trackingProgram = trEncoder.getTrackingProgram();
-			Utility_tme.logDebug("# " + trEncoder.getNtrackingClauses() + " clauses in tracking program");
+			Utility_PrisM.logDebug("# " + trEncoder.getNtrackingClauses() + " clauses in tracking program");
 			try {
 				File f = new File(trackingProgramFileName);
 				PrintWriter programWriter = new PrintWriter(f);
@@ -289,33 +289,33 @@ public class PrisM{
 			}
 
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to create and (save?) tracking program");
+			Utility_PrisM.logDebug("# " + t + "ms to create and (save?) tracking program");
 			t = System.currentTimeMillis();
 			
 			if (numberOfThreads > 1){
 				store.setNumberOfThreads(1);
 				t = System.currentTimeMillis() - t;
-				Utility_tme.logDebug("# " + t + "ms to set the number of threads to 1 before loading rules");
+				Utility_PrisM.logDebug("# " + t + "ms to set the number of threads to 1 before loading rules");
 				t = System.currentTimeMillis();
 			}
 			
 			
 			store.importFiles(new File[]{new File(trackingProgramFileName)}, new Prefixes(), UpdateType.Add, true);
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to load tracking rules");
+			Utility_PrisM.logDebug("# " + t + "ms to load tracking rules");
 			t = System.currentTimeMillis();
 			
 			if (numberOfThreads > 1){
 				store.setNumberOfThreads(numberOfThreads);
 				t = System.currentTimeMillis() - t;
-				Utility_tme.logDebug("# " + t + "ms to set the number of threads to " + numberOfThreads + " again");
+				Utility_PrisM.logDebug("# " + t + "ms to set the number of threads to " + numberOfThreads + " again");
 				t = System.currentTimeMillis();
 			}
 			
 			store.applyReasoning();
-			Utility_tme.logDebug("# Number of tuples after materialising tracking: " + store.getTriplesCount());
+			Utility_PrisM.logDebug("# Number of tuples after materialising tracking: " + store.getTriplesCount());
 			t = System.currentTimeMillis() - t;
-			Utility_tme.logDebug("# " + t + "ms to materialise tracking program");			
+			Utility_PrisM.logDebug("# " + t + "ms to materialise tracking program");			
 			t = System.currentTimeMillis();
 			
 		} catch (JRDFStoreException e) {
@@ -323,16 +323,12 @@ public class PrisM{
 		}
 
 	}
-	protected Set<OWLAxiom> extractAxioms(DataStore store,
-			TrackingRuleEncoder4TailoredModuleExtraction trEncoder) {
+	protected Set<OWLAxiom> extractAxioms(DataStore store, TrackingRuleEncoder4TailoredModuleExtraction trEncoder) {
 		Long t = System.currentTimeMillis();
-		
 		Set<OWLAxiom> axioms = trEncoder.extractAxioms(store);
-
 		t = System.currentTimeMillis() - t;
-		Utility_tme.logDebug("# " + t + "ms to retrieve axioms");
+		Utility_PrisM.logDebug("# " + t + "ms to retrieve axioms");
 		t = System.currentTimeMillis();
-		
 		return axioms;
 	}
 	protected void dispose(DataStore store){

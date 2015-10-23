@@ -30,7 +30,7 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import uk.ac.ox.cs.JRDFox.JRDFStoreException;
 import uk.ac.ox.cs.prism.PrisM;
 import uk.ac.ox.cs.prism.PrisM.InseparabilityRelation;
-import uk.ac.ox.cs.prism.util.Utility_tme;
+import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
 public class RandomSampleTest {
 
@@ -64,18 +64,18 @@ public class RandomSampleTest {
 		
 		if (args.length>4){
 			skipFirstNsignatures = Integer.parseInt(args[4]);
-			Utility_tme.logInfo("skipping the first " + skipFirstNsignatures + " signatures");
+			Utility_PrisM.logInfo("skipping the first " + skipFirstNsignatures + " signatures");
 		}
 
 		reader = inst.new SignatureReader(args[1]);
 		
 		if (args.length>2){
 			timeoutSecs = Integer.parseInt(args[2]);
-			Utility_tme.logInfo("timeout of " + timeoutSecs + "s is active? " + timeout);
+			Utility_PrisM.logInfo("timeout of " + timeoutSecs + "s is active? " + timeout);
 		}
 		if (args.length>3){
 			nThreads = Integer.parseInt(args[3]);
-			Utility_tme.logInfo(nThreads + " threads");
+			Utility_PrisM.logInfo(nThreads + " threads");
 		}
 
 		ExecutorService executor = Executors.newFixedThreadPool(1);
@@ -296,7 +296,7 @@ public class RandomSampleTest {
 				int m = i+skipFirstNsignatures;
 				signatureFiles[i] = new File(signaturesDirectory + "/sample" + (m+1) + ".ttl");
 			}
-			Utility_tme.logDebug(signatureFiles.length + " signature files recovered");
+			Utility_PrisM.logDebug(signatureFiles.length + " signature files recovered");
 			nextFile = null;
 		}
 		
@@ -383,7 +383,7 @@ public class RandomSampleTest {
 				return false;
 			else{
 				nextFile = signatureFiles[counter];
-				Utility_tme.logInfo("# loading signature from file " + nextFile.getAbsolutePath());
+				Utility_PrisM.logInfo("# loading signature from file " + nextFile.getAbsolutePath());
 				return true;
 			}
 		}

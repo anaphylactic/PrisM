@@ -133,6 +133,8 @@ public class OverApproxExistForModuleExtraction implements Approximator{
 			for (int i = 0; i < card; ++i) {
 				if (atomicConcept != null){
 					ret.add(DLClause.create(new Atom[] {Atom.create(atomicConcept, individuals[i])}, bodyAtoms));
+					//unlike in MORe, here we can't just add these facts in a dataset without connecting them to the rule that produces them 
+					//this would not be enough, e.g. for query inseparability - checking the existence of an instance of a given concept	
 					//top assertions about skolem individuals are handled by the IndividualManager and the ABoxManager
 				}
 
