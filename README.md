@@ -12,3 +12,13 @@ If you wish to use PrisM as a library, run
 $ mvn install
 ```
 This should generate a folder called ```target``` containing the library ```uber-PrisM-0.0.1-SNAPSHOT.jar```. This library is ready to use and bundles all necessary dependencies.
+
+
+
+PrisM supports most OWL 2 features; however, it does not support the following constructs:
+
+* OWLHasKeyAxiom,
+* OWLDataRanges that are not atomic or an instance of OWLDataOneOf,
+* OWLLiteral whose datatype is outside the OWL 2 datatype map,
+* OWLDatatypeDefinitionAxiom
+* SWRLDataRangeAtom (in SWRLRule).

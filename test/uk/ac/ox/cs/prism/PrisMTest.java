@@ -719,41 +719,73 @@ public class PrisMTest{//TODO organise tests by module type - one test class for
 		assertTrue(TestUtility.compareCollections(actual, control));
 	}
 	
-	//TODO
-//	@Test
-//	public void supportginDatatypesTest() throws OWLOntologyCreationException, JRDFStoreException {
-//		OWLDataFactory factory = new OWLDataFactoryImpl();
-//		
-//		OWLClass a = factory.getOWLClass(IRI.create("A"));
-//		OWLDataProperty dp = factory.getOWLDataProperty(IRI.create("dataP"));
-//		OWLDatatype datatype = factory.getOWLDatatype(IRI.create("datatype"));
-//		OWLDataRange dataRange = factory.getOWLDataUnionOf(factory.getIntegerOWLDatatype(), factory.getFloatOWLDatatype());
-//		OWLDataRange dataRange2 = factory.getOWLDataIntersectionOf(factory.getIntegerOWLDatatype(), factory.getFloatOWLDatatype());
-//		
-//		OWLAxiom ax1 = factory.getOWLDatatypeDefinitionAxiom(datatype, dataRange);
-//		OWLAxiom ax2 = factory.getOWLDataPropertyRangeAxiom(dp, factory.getBooleanOWLDatatype());
-//		
-//		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-//		OWLOntology ont = manager.createOntology();
-//		
-//		manager.addAxiom(ont, ax1);
-//		manager.addAxiom(ont, ax2);
-//		
-//		Set<OWLEntity> signature = new HashSet<OWLEntity>();
-//		signature.add(a);
-//
-//		PrisM extractor = new PrisM(ont, InseparabilityRelation.CLASSIFICATION_INSEPARABILITY);
-//		Set<String> actual = new HashSet<String>();
-//		for (OWLAxiom ax : extractor.extract(signature)){
-//			actual.add(ax.toString());
-//			System.out.println(ax.toString());
-//		}
-//		extractor.finishDisposal();
-//		Set<String> control = new HashSet<String>();
-//		control.add(ax1.toString());
-//		control.add(ax2.toString());
-//		
-//		assertTrue(TestUtility.compareCollections(actual, control));
-//	}
+	@Test
+	public void supportginDatatypesTest() throws OWLOntologyCreationException, JRDFStoreException {
+		OWLDataFactory factory = new OWLDataFactoryImpl();
+		
+		OWLClass a = factory.getOWLClass(IRI.create("A"));
+		OWLDataProperty dp = factory.getOWLDataProperty(IRI.create("dataP"));
+		
+		OWLAxiom ax1 = factory.getOWLSubClassOfAxiom(a, factory.getOWLDataSomeValuesFrom(dp, factory.getIntegerOWLDatatype()));
+		OWLAxiom ax2 = factory.getOWLDataPropertyRangeAxiom(dp, factory.getBooleanOWLDatatype());
+		
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology ont = manager.createOntology();
+		
+		manager.addAxiom(ont, ax1);
+		manager.addAxiom(ont, ax2);
+		
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		signature.add(a);
 
+		PrisM extractor = new PrisM(ont, InseparabilityRelation.CLASSIFICATION_INSEPARABILITY);
+		Set<String> actual = new HashSet<String>();
+		for (OWLAxiom ax : extractor.extract(signature)){
+			actual.add(ax.toString());
+//			System.out.println(ax.toString());
+		}
+		extractor.finishDisposal();
+		Set<String> control = new HashSet<String>();
+		control.add(ax1.toString());
+		control.add(ax2.toString());
+		
+		assertTrue(TestUtility.compareCollections(actual, control));
+	}
+
+	@Test
+	public void supportginDatatypesTest2() throws OWLOntologyCreationException, JRDFStoreException {
+		OWLDataFactory factory = new OWLDataFactoryImpl();
+		
+		OWLClass a = factory.getOWLClass(IRI.create("A"));
+		OWLClass b = factory.getOWLClass(IRI.create("B"));
+		OWLDataProperty dp = factory.getOWLDataProperty(IRI.create("dataP"));
+		
+		OWLAxiom ax1 = factory.getOWLSubClassOfAxiom(a, factory.getOWLObjectUnionOf(b, factory.getOWLDataSomeValuesFrom(dp, factory.getIntegerOWLDatatype())));
+		OWLAxiom ax2 = factory.getOWLDataPropertyRangeAxiom(dp, factory.getBooleanOWLDatatype());
+		OWLAxiom ax3 = factory.getOWLSubClassOfAxiom(factory.getOWLDataHasValue(dp, factory.getOWLLiteral(2)), b);
+		
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology ont = manager.createOntology();
+		
+		manager.addAxiom(ont, ax1);
+		manager.addAxiom(ont, ax2);
+		manager.addAxiom(ont, ax3);
+		
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		signature.add(a);
+
+		PrisM extractor = new PrisM(ont, InseparabilityRelation.CLASSIFICATION_INSEPARABILITY);
+		Set<String> actual = new HashSet<String>();
+		for (OWLAxiom ax : extractor.extract(signature)){
+			actual.add(ax.toString());
+//			System.out.println(ax.toString());
+		}
+		extractor.finishDisposal();
+		Set<String> control = new HashSet<String>();
+		control.add(ax1.toString());
+		control.add(ax2.toString());
+		control.add(ax3.toString());
+		
+		assertTrue(TestUtility.compareCollections(actual, control));
+	}
 }

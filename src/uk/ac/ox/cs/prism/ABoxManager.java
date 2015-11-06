@@ -5,7 +5,10 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.semanticweb.HermiT.model.Atom;
+import org.semanticweb.HermiT.model.Constant;
 import org.semanticweb.HermiT.model.Individual;
+import org.semanticweb.HermiT.model.Inequality;
 import org.semanticweb.HermiT.model.Variable;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -20,7 +23,9 @@ import uk.ac.ox.cs.JRDFox.store.Parameters;
 import uk.ac.ox.cs.JRDFox.store.TupleIterator;
 import uk.ac.ox.cs.pagoda.MyPrefixes;
 import uk.ac.ox.cs.pagoda.constraints.BottomStrategy;
+import uk.ac.ox.cs.pagoda.util.Namespace;
 import uk.ac.ox.cs.prism.PrisM.InseparabilityRelation;
+import uk.ac.ox.cs.prism.clausification.DatatypeManager;
 import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
 public class ABoxManager {
@@ -31,7 +36,7 @@ public class ABoxManager {
 	IndividualManager indManager;
 	StringBuilder initialAboxText = new StringBuilder();
 	StringBuilder trackingAboxText = new StringBuilder();
-	
+
 	boolean loadABoxesByText = false;
 	boolean twoDifferentIndividuals4PropertyInstantiation = true;
 
@@ -42,10 +47,10 @@ public class ABoxManager {
 		indManager = iManager;
 	}
 
-	public void createInitialABox(String initialABoxFileName) throws Exception{
-		
+	public void createInitialABox(String initialABoxFileName, DatatypeManager dtManager) throws Exception{
+
 		PrintWriter out = new PrintWriter(new File(initialABoxFileName));
-		
+
 		if (!insepRel.equals(InseparabilityRelation.WEAK_QUERY_INSEPARABILITY)){
 			for (OWLEntity e : signature){
 				if (e instanceof OWLClass){
@@ -69,29 +74,34 @@ public class ABoxManager {
 		//the following two actions must be done after any facts involving the critical instance have been created
 		//we get assertions of top for all the individuals created - this way we will get them without redundance
 		addToInitialABox(indManager.printTopFactsForAllIndividuals(),out);
-		//we get assertions of top for all the individuals aoriginally in the TBox, and also any necessary facts equating these individuals to the critical instance
+		//we get assertions of top for all the individuals originally in the TBox, and also any necessary facts equating these individuals to the critical instance
 		addToInitialABox(indManager.printFactsForIndividualsFromTBox(individualsFromTBox), out);
-		 		
+		//we get assertions of owl:DIfferentFrom between all literal constants involved in the ontology
+		Constant[] constants = dtManager.getUsedConstants().toArray(new Constant[0]);
+		for (int i = 0; i<constants.length; i++) 
+			for (int j = i+1; j< constants.length; j++)
+				addToInitialABox(Utility_PrisM.print(Namespace.INEQUALITY, constants[i], constants[j]),out);
+
 		if (loadABoxesByText && !initialABoxFileName.equals(""))
 			out.print(initialAboxText.toString());
 		out.close();
 	}
-	
+
 	protected void addToInitialABox(String facts, PrintWriter out){
 		if (loadABoxesByText)
 			initialAboxText.append(facts);
 		else
 			out.print(facts);
 	}
-	
+
 	public String getInitialABoxText(){
 		return initialAboxText.toString();
 	}
-	
+
 	protected void createTrackingABox(DataStore store, TrackingRuleEncoder4TailoredModuleExtraction trEncoder, String trackingABoxFileName, BottomStrategy bottomStrategy) throws Exception{
-		
+
 		PrintWriter out = new PrintWriter(new File(trackingABoxFileName));
-		
+
 		Prefixes prefixes = MyPrefixes.PAGOdAPrefixes.getRDFoxPrefixes();
 
 		//First of all let's retrieve all the bottom facts in the materialisation, as we will have to track these for sure in any case
@@ -99,16 +109,16 @@ public class ABoxManager {
 		TupleIterator tupleIterator = null;
 		try{
 			tupleIterator = store.compileQuery(
-							"SELECT DISTINCT ?x WHERE{ ?x <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Nothing> } ", 
-							prefixes, 
-							new Parameters());
+					"SELECT DISTINCT ?x WHERE{ ?x <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Nothing> } ", 
+					prefixes, 
+					new Parameters());
 			for (long multiplicity = tupleIterator.open(); multiplicity !=0; multiplicity = tupleIterator.getNext()) {
 				GroundTerm groundTerm = tupleIterator.getGroundTerm(0);
 				if (groundTerm instanceof uk.ac.ox.cs.JRDFox.model.Individual){
 					String s = ((uk.ac.ox.cs.JRDFox.model.Individual)groundTerm).getIRI();
 					String bottomPredicate = bottomStrategy.getEmptyHead(X)[0].getDLPredicate().toString();
 					String trackingPredicate = trEncoder.getTrackingPredicate(MyPrefixes.PAGOdAPrefixes.getHermiTPrefixes().expandAbbreviatedIRI(bottomPredicate));
-					
+
 					addToTrackingABox(Utility_PrisM.print(trackingPredicate, s), out);
 				}
 			}	
@@ -119,7 +129,7 @@ public class ABoxManager {
 		finally{
 			if (tupleIterator != null) tupleIterator.dispose();
 		}
-		
+
 
 		//And now let's retrieve the facts that depend on the kind of module we want to extract 
 		switch (insepRel){
@@ -143,12 +153,12 @@ public class ABoxManager {
 			createTrackingABoxForClassificationInseparability(store, trEncoder, prefixes, out);
 			break;
 		}
-		
+
 		if (!trackingABoxFileName.equals(""))
 			out.print(trackingAboxText.toString());
 		out.close();
 	}
-	
+
 	protected void addToTrackingABox(String facts, PrintWriter out){
 		if (loadABoxesByText)
 			trackingAboxText.append(facts);
@@ -194,7 +204,7 @@ public class ABoxManager {
 		finally{
 			if (tupleIterator != null) tupleIterator.dispose();
 		}
-		
+
 		par = new Parameters();
 		par.m_expandEquality = false;
 		try{
@@ -486,13 +496,14 @@ public class ABoxManager {
 	protected boolean builtInClass(String s){
 		return s.endsWith("owl#Thing") || s.endsWith("owl#Nothing") || s.contains("RDFox#replace");
 	}
-	
+
 	protected boolean builtInProperty(String s){
 		return s.endsWith("ns#type") || s.contains("RDFox#replace");
 	}
 
 	protected boolean isSameAsPredicate(String s){
 		return s.endsWith("owl#sameAs");
-//		return s.equals("http://www.w3.org/2002/07/owl#sameAs");
+		//		return s.equals("http://www.w3.org/2002/07/owl#sameAs");
 	}
+
 }

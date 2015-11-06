@@ -46,8 +46,8 @@ public class OWLAxiomsExpressivity_withMaps extends OWLAxiomsExpressivity {
 	        if (!axioms.m_dataProperties.isEmpty()
 	        		|| !axioms.m_disjointDataProperties.isEmpty()
 	        		|| !((OWLAxioms_withMaps) axioms).m_dataPropertyInclusions_map.isEmpty()
-	        		|| !((OWLAxioms_withMaps) axioms).m_dataRangeInclusions_map.isEmpty()
-	        		|| !((OWLAxioms_withMaps) axioms).m_auxiliaryDataRangeInclusions.isEmpty()
+//	        		|| !((OWLAxioms_withMaps) axioms).m_dataRangeInclusions_map.isEmpty()
+//	        		|| !((OWLAxioms_withMaps) axioms).m_auxiliaryDataRangeInclusions.isEmpty()
 	        		|| !axioms.m_definedDatatypesIRIs.isEmpty())
 	            m_hasDatatypes=true;
 	        for (Entry<OWLAxiom,Collection<OWLIndividualAxiom>> entry : ((OWLAxioms_withMaps) axioms).m_facts_map.entrySet())

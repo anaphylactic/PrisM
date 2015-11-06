@@ -17,18 +17,18 @@ import org.semanticweb.HermiT.model.DLClause;
 import org.semanticweb.HermiT.model.Variable;
 
 import uk.ac.ox.cs.pagoda.rules.Approximator;
-import uk.ac.ox.cs.pagoda.rules.OverApproxDisj;
+import uk.ac.ox.cs.pagoda.rules.OverApproxDisjWithDatatypeSupport;
+import uk.ac.ox.cs.prism.clausification.DatatypeManager;
 
 public class OverApproxForTailoredModuleExtraction implements Approximator{
 
-	Approximator approxDist;
-	Approximator approxExist;
-	static int freshPredicateCounter = 0;
+	protected Approximator approxDist;
+	protected Approximator approxExist;
+	protected static int freshPredicateCounter = 0;
 	
-	
-	public OverApproxForTailoredModuleExtraction(IndividualManager indManager){
-		approxDist = new OverApproxDisj();
-		approxExist = new OverApproxExistForModuleExtraction(indManager);
+	public OverApproxForTailoredModuleExtraction(IndividualManager indManager, DatatypeManager dtManager){
+		approxDist = new OverApproxDisjWithDatatypeSupport();
+		approxExist = new OverApproxExistWithDatatypeSupport(indManager, dtManager);
 	}
 
 	public Collection<DLClause> convert(DLClause clause, DLClause originalClause) {

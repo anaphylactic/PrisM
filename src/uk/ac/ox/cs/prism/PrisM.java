@@ -28,6 +28,7 @@ import uk.ac.ox.cs.JRDFox.store.DataStore.UpdateType;
 import uk.ac.ox.cs.pagoda.constraints.BottomStrategy;
 import uk.ac.ox.cs.pagoda.constraints.UnaryBottom;
 import uk.ac.ox.cs.pagoda.util.Utility;
+import uk.ac.ox.cs.prism.clausification.DatatypeManager;
 import uk.ac.ox.cs.prism.util.Utility_PrisM;
 
 public class PrisM{
@@ -89,19 +90,19 @@ public class PrisM{
 	}
 	private Set<OWLAxiom> extract(Set<OWLEntity> signature, boolean viaSyntacticLocality){
 		indManager = new IndividualManager(insepRel);
-		
+		DatatypeManager datatypeManager = new DatatypeManager();
 		initStartingModule(signature, viaSyntacticLocality);
 
 		BottomStrategy bottomStrategy = new UnaryBottom();
-		DatalogStrengthening program = computeStrengthening(bottomStrategy);
+		DatalogStrengthening program = computeStrengthening(bottomStrategy, datatypeManager);
 		//it is important that the program is initialised before the initial ABox so any necessary Skolem constants etc are created first
 
 		aboxManager = new ABoxManager(signature, startingModule.getIndividualsInSignature(), insepRel, indManager);
-		createInitialABox(aboxManager);
+		createInitialABox(aboxManager, datatypeManager);
 
 		DataStore store = initDataStore();
 		store = materialise(store, program);
-
+		
 		TrackingRuleEncoder4TailoredModuleExtraction trEncoder = new TrackingRuleEncoder4TailoredModuleExtraction(program);
 		createTrackingABox(aboxManager, store, trEncoder, bottomStrategy);
 		materialiseTracking(store, trEncoder);
@@ -166,10 +167,10 @@ public class PrisM{
 	}
 	
 	
-	protected DatalogStrengthening computeStrengthening(BottomStrategy bottomStrategy){
+	protected DatalogStrengthening computeStrengthening(BottomStrategy bottomStrategy, DatatypeManager dtManager){
 		Long t = System.currentTimeMillis();
 
-		DatalogStrengthening program = new DatalogStrengthening(indManager);
+		DatalogStrengthening program = new DatalogStrengthening(indManager, dtManager);
 		program.load(startingModule, bottomStrategy);
 //		program.transform();//this is done directly as part of the loading now
 
@@ -190,9 +191,9 @@ public class PrisM{
 		return program;
 	}
 
-	protected void createInitialABox(ABoxManager aboxManager){
+	protected void createInitialABox(ABoxManager aboxManager, DatatypeManager dtManager){
 		try {
-			aboxManager.createInitialABox(initialABoxFileName);
+			aboxManager.createInitialABox(initialABoxFileName, dtManager);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -203,11 +204,11 @@ public class PrisM{
 	protected DataStore materialise(DataStore store, DatalogStrengthening program){
 		Long t = System.currentTimeMillis();
 		try {
-			store.importFiles(new File[]{new File(initialABoxFileName)});			
+			store.importFiles(new File[]{new File(initialABoxFileName)});
 			String originalAbox = program.getAdditionalDataFile(); 
 			if (originalAbox!=null)  
 				store.importFiles(new File[]{new File(originalAbox)});
-			
+
 			Utility_PrisM.logDebug("# Number of tuples after import: " + store.getTriplesCount());
 			t = System.currentTimeMillis() - t;
 			Utility_PrisM.logDebug("# " + t + "ms to load initial facts");

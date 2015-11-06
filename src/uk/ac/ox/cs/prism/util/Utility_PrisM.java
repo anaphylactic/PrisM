@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.semanticweb.HermiT.model.Constant;
 import org.semanticweb.HermiT.model.Individual;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -20,6 +21,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.ox.cs.JRDFox.JRDFStoreException;
 import uk.ac.ox.cs.JRDFox.store.DataStore;
 import uk.ac.ox.cs.JRDFox.store.TupleIterator;
+import uk.ac.ox.cs.pagoda.MyPrefixes;
 import uk.ac.ox.cs.pagoda.util.Namespace;
 
 public class Utility_PrisM{
@@ -109,6 +111,12 @@ public class Utility_PrisM{
 	public static String print(Individual i) {
 		return print(i.getIRI().toString());
 	}
+	public static String print(Constant c) {
+		StringBuffer sb = new StringBuffer(c.toString());
+		String datatype = sb.substring(sb.lastIndexOf("^")+1,sb.length());
+		String ret = sb.toString().replace(datatype, "<" + MyPrefixes.PAGOdAPrefixes.expandIRI(datatype) + ">");
+		return ret;
+	}
 	public static String print(OWLObjectPropertyExpression propertyExpression, Individual argument1, Individual argument2){
 		if (propertyExpression instanceof OWLObjectProperty) {
 			String ret = print(argument1);
@@ -135,6 +143,15 @@ public class Utility_PrisM{
 		return ret;
 	}
 	public static String print(String propertyIRI, Individual argument1, Individual argument2){
+		String ret = print(argument1);
+		ret = ret + ' ';
+		ret = ret + print(propertyIRI);
+		ret = ret + ' ';
+		ret = ret + print(argument2);
+		ret = ret + " .\n";
+		return ret;
+	}
+	public static String print(String propertyIRI, Constant argument1, Constant argument2){
 		String ret = print(argument1);
 		ret = ret + ' ';
 		ret = ret + print(propertyIRI);
@@ -198,6 +215,9 @@ public class Utility_PrisM{
 	}
 	public static void logError(Object... messages){
 		logger.error(getLogMessage(messages));
+	}
+	public static void logWarn(Object... messages){
+		logger.warn(getLogMessage(messages));
 	}
 	public static void logTrace(Object... messages){
 		logger.trace(getLogMessage(messages));

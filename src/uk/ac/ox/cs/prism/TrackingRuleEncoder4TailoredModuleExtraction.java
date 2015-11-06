@@ -183,10 +183,13 @@ public class TrackingRuleEncoder4TailoredModuleExtraction {
 
 		Atom headAtom;
 		for (Atom atom: clause.getBodyAtoms()) {
-			headAtom = Atom.create(
-					getTrackingDLPredicate(atom.getDLPredicate()), 
-					DLClauseHelper.getArguments(atom));
-			newHeadAtoms.add(headAtom);
+			DLPredicate trackingPredicate = getTrackingDLPredicate(atom.getDLPredicate());
+			if (trackingPredicate != null) {
+				headAtom = Atom.create(
+						getTrackingDLPredicate(atom.getDLPredicate()), 
+						DLClauseHelper.getArguments(atom));
+				newHeadAtoms.add(headAtom);	
+			}
 		}
 
 		DLClause newClause;

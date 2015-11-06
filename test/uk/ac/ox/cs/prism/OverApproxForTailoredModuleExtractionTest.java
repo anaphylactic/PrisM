@@ -1,7 +1,5 @@
 package uk.ac.ox.cs.prism;
 
-import static org.junit.Assert.*;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,8 +10,6 @@ import org.semanticweb.HermiT.model.AtomicRole;
 import org.semanticweb.HermiT.model.DLClause;
 import org.semanticweb.HermiT.model.Individual;
 import org.semanticweb.HermiT.model.Variable;
-
-import util.TestUtility;
 
 public class OverApproxForTailoredModuleExtractionTest {
 
@@ -50,7 +46,7 @@ public class OverApproxForTailoredModuleExtractionTest {
 		set.add(clause);
 //		System.out.println(clause.toString());
 		
-		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null);
+		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null, null);
 		
 		for (DLClause c : approx.avoidLongBodies(set)){
 //			System.out.println(c.toString());
@@ -112,7 +108,7 @@ public class OverApproxForTailoredModuleExtractionTest {
 		set.add(clause);
 //		System.out.println(clause.toString());
 		
-		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null);
+		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null, null);
 		
 		for (DLClause c : approx.avoidLongBodies(set)){
 //			System.out.println(c.toString());
@@ -174,7 +170,7 @@ public class OverApproxForTailoredModuleExtractionTest {
 		set.add(clause);
 //		System.out.println(clause.toString());
 		
-		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null);
+		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null, null);
 		
 		for (DLClause c : approx.avoidLongBodies(set)){
 //			System.out.println(c.toString());
@@ -218,10 +214,10 @@ public class OverApproxForTailoredModuleExtractionTest {
 		set.add(clause);
 //		System.out.println(clause.toString());
 		
-		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null);
+		OverApproxForTailoredModuleExtraction approx = new OverApproxForTailoredModuleExtraction(null, null);
 		
 		for (DLClause c : approx.avoidLongBodies(set)){
-			System.out.println(c.toString());
+//			System.out.println(c.toString());
 		}
 		
 //		Provided as reference - output varies in each run!

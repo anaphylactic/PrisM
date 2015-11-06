@@ -13,6 +13,8 @@ import org.semanticweb.HermiT.model.Term;
 import org.semanticweb.HermiT.model.Variable;
 import uk.ac.ox.cs.pagoda.MyPrefixes;
 import uk.ac.ox.cs.pagoda.util.Namespace;
+import uk.ac.ox.cs.prism.OverApproxExistWithDatatypeSupport.BindDatatypeAtom;
+import uk.ac.ox.cs.prism.OverApproxExistWithDatatypeSupport.FilterAtom;
 
 public class RuleHelper {
 
@@ -70,8 +72,10 @@ public class RuleHelper {
 				atom.getDLPredicate() instanceof NodeIDLessEqualThan) 
 			return null;
 		
-		StringBuilder builder = new StringBuilder(); 
-		if (atom.getArity() == 1) {
+		StringBuilder builder = new StringBuilder();
+		if (atom instanceof BindDatatypeAtom || atom instanceof FilterAtom)
+			builder.append(atom.toString());
+		else if (atom.getArity() == 1) {
 			builder.append(getText(atom.getDLPredicate())); 
 			builder.append("("); 
 			builder.append(getText(atom.getArgument(0)));

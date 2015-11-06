@@ -221,6 +221,22 @@ public class DLClauseHelper {
 		return args;
 	}
 	
+	public static Variable getFreshVariable(Atom[] atoms){
+		int nZvars = 0;
+		Set<Variable> vars = new HashSet<Variable>();
+		for (Atom atom : atoms) {
+			atom.getVariables(vars);
+			for (Variable var : vars)
+				if (var.getName().contains("Z"))
+					nZvars++;
+			vars.clear();
+		}
+		if (nZvars > 0)
+			return Variable.create("Z"+nZvars);
+		else 
+			return Variable.create("Z");
+	}
+	
 	public static DLClause getQuery(String queryText, Collection<String> answerVariables) {
 		Collection<Atom> bodyAtoms = new LinkedList<Atom>();
 		SparqlHelper.parse(queryText.replace("_:", "?"), answerVariables, bodyAtoms);

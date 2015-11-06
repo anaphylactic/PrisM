@@ -11,8 +11,8 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataAllValuesFrom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataRange;
@@ -38,7 +38,7 @@ public class NormalizationTest {
 	OWLDataProperty dp;
 	OWLDatatype datatype;
 	OWLDataRange dataRange, dataRange2;
-	OWLAxiom ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12, ax13;
+	OWLAxiom ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12, ax13, ax14;
 	OWLNormalization_withMaps normalization = null;
 	
 	@Test
@@ -62,8 +62,8 @@ public class NormalizationTest {
 		//will lead to an auxiliary axiom due to nested class expression
 		ax2 = factory.getOWLEquivalentClassesAxiom(factory.getOWLObjectUnionOf(a,d),factory.getOWLObjectSomeValuesFrom(r, factory.getOWLObjectIntersectionOf(b,c)));
 		//some of the clauses it produces were already produced by ax1
-		ax3 = factory.getOWLDatatypeDefinitionAxiom(datatype, dataRange);
-		ax4 = factory.getOWLDataPropertyRangeAxiom(dp, dataRange2);
+		ax3 = factory.getOWLDatatypeDefinitionAxiom(datatype, dataRange); //should not be accepted
+		ax4 = factory.getOWLDataPropertyRangeAxiom(dp, dataRange2); //should not be accepted
 		ax5 = factory.getOWLSymmetricObjectPropertyAxiom(p);
 		ax6 = factory.getOWLInverseObjectPropertiesAxiom(r, s);
 		ax7 = factory.getOWLSameIndividualAxiom(i,j);
@@ -72,7 +72,8 @@ public class NormalizationTest {
 		ax10 = factory.getOWLObjectPropertyAssertionAxiom(p, i, j);
 		ax11 = factory.getOWLNegativeObjectPropertyAssertionAxiom(p, j, i);
 		ax12 = factory.getOWLDataPropertyAssertionAxiom(dp, i, factory.getOWLLiteral(2));
-		ax13 = factory.getOWLNegativeDataPropertyAssertionAxiom(dp, i, factory.getOWLLiteral(2));
+		ax13 = factory.getOWLNegativeDataPropertyAssertionAxiom(dp, i, factory.getOWLLiteral(5));
+		ax14 = factory.getOWLClassAssertionAxiom(factory.getOWLObjectSomeValuesFrom(r, factory.getOWLObjectOneOf(i, j)), i);
 		
 		Set<OWLAxiom> axiomSet = new HashSet<OWLAxiom>();
 		axiomSet.add(ax1);
@@ -88,6 +89,7 @@ public class NormalizationTest {
 		axiomSet.add(ax11);
 		axiomSet.add(ax12);
 		axiomSet.add(ax13);
+		axiomSet.add(ax14);
 		
 		propertyManagersTest(normalizationTest(axiomSet));
 	}
@@ -119,8 +121,8 @@ public class NormalizationTest {
 //	    m_objectPropertiesOccurringInOWLAxioms
 		Assert.assertEquals(expected_properties, axioms.m_objectPropertiesOccurringInOWLAxioms);
 
-//		//		    public final Set<OWLObjectPropertyExpression> m_complexObjectPropertyExpressions; //kept
-//		System.out.println(axioms.m_complexObjectPropertyExpressions); //only modified after applying the complexobjectpropertymanager
+//		m_complexObjectPropertyExpressions
+		Assert.assertTrue(axioms.m_complexObjectPropertyExpressions.isEmpty());
 
 //	    m_dataProperties
 		Collection<OWLDataProperty> expected_dataProperties = new HashSet<OWLDataProperty>();
@@ -136,8 +138,9 @@ public class NormalizationTest {
 		OWLClassExpression def0 = null;
 		OWLClassExpression def1 = null;
 		OWLClassExpression def2 = null;
+		OWLClassExpression def3 = null;
 //	    m_conceptInclusions_map
-		Assert.assertTrue(axioms.m_conceptInclusions_map.size() == 3);
+		Assert.assertTrue(axioms.m_conceptInclusions_map.size() == 2);
 		Collection<OWLClassExpression[]> inclusions = axioms.m_conceptInclusions_map.get(ax2);
 		Assert.assertTrue(inclusions.size() == 2);
 		boolean[] found = new boolean[]{false, false}; 
@@ -170,19 +173,32 @@ public class NormalizationTest {
 					 ((OWLObjectSomeValuesFrom) inclusion[1]).getProperty().equals(r) &&
 					 ((OWLObjectSomeValuesFrom) inclusion[1]).getFiller().equals(def2));
 		}
-		inclusions = axioms.m_conceptInclusions_map.get(ax4);
-		Assert.assertTrue(inclusions.size() == 1);
-		OWLDataRange defData0 = null;
-		for (OWLClassExpression[] inclusion : inclusions) {
-			if (inclusion.length == 1 &&
-					 inclusion[0] instanceof OWLDataAllValuesFrom && 
-					 ((OWLDataAllValuesFrom) inclusion[0]).getProperty().equals(dp))
-				defData0 = ((OWLDataAllValuesFrom) inclusion[0]).getFiller();
-		}
 		
+//		m_facts_map
+		Assert.assertTrue(axioms.m_facts_map.size() == 8);
+		Collection<OWLIndividualAxiom> facts = axioms.m_facts_map.get(ax7);
+		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax7));
+		facts = axioms.m_facts_map.get(ax8);
+		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax8));
+		facts = axioms.m_facts_map.get(ax9);
+		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax9));
+		facts = axioms.m_facts_map.get(ax10);
+		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax10));
+		facts = axioms.m_facts_map.get(ax11);
+		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax11));
+		facts = axioms.m_facts_map.get(ax12);
+		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax12));
+		facts = axioms.m_facts_map.get(ax13);
+		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax13));
+		facts = axioms.m_facts_map.get(ax14);
+		Assert.assertTrue(facts.size() == 1);
+		OWLIndividualAxiom ax = facts.iterator().next();
+		Assert.assertTrue(ax instanceof OWLClassAssertionAxiom && ((OWLClassAssertionAxiom) ax).getIndividual().equals(i));
+		def3 = ((OWLClassAssertionAxiom) ax).getClassExpression();
 		
-		found = new boolean[]{false, false, false, false, false};
-		Assert.assertTrue(axioms.m_auxiliaryConceptInclusions.size() == 5);
+//		m_auxiliaryConceptInclusions		
+		found = new boolean[]{false, false, false, false, false, false};
+		Assert.assertTrue(axioms.m_auxiliaryConceptInclusions.size() == 6);
 		for (OWLClassExpression[] inclusion : axioms.m_auxiliaryConceptInclusions) {
 			if (!found[0] && inclusion.length == 2 && inclusion[0].equals(def1) && inclusion[1].equals(d.getComplementNNF())) {
 				 found[0] = true;
@@ -204,52 +220,15 @@ public class NormalizationTest {
 				 found[4] = true;
 				 continue;
 			 }
+			 if (!found[5] && inclusion.length == 2 && inclusion[0].equals(def3.getComplementNNF()) && inclusion[1].equals(factory.getOWLObjectSomeValuesFrom(r, factory.getOWLObjectOneOf(i,j)))) {
+				 found[5] = true;
+				 continue;
+			 }
 			 Assert.assertTrue(false);
 		}
 		
 //		m_dataRangeInclusions_map
-		Assert.assertTrue(axioms.m_dataRangeInclusions_map.size() == 1);
-		Collection<OWLDataRange[]> dataRangeInclusions = axioms.m_dataRangeInclusions_map.get(ax3);
-		Assert.assertTrue(dataRangeInclusions.size() == 3);
-		found = new boolean[]{false, false, false}; 
-		for (OWLDataRange[] inclusion : dataRangeInclusions) {
-			 if (!found[0] && inclusion.length == 3 &&
-					 inclusion[0].equals(factory.getFloatOWLDatatype()) && inclusion[1].equals(factory.getOWLDataComplementOf(datatype)) && 
-					 inclusion[2].equals(factory.getIntegerOWLDatatype())) {
-				 found[0] = true;
-				 continue;
-			 }
-			 if (!found[1] && inclusion.length == 2 &&
-					 inclusion[0].equals(datatype) && 
-					 inclusion[1].equals(factory.getOWLDataComplementOf(factory.getFloatOWLDatatype()))) {
-				 found[1] = true;
-				 continue;
-			 }
-			 if (!found[2] && inclusion.length == 2 &&
-					 inclusion[0].equals(datatype) && 
-					 inclusion[1].equals(factory.getOWLDataComplementOf(factory.getIntegerOWLDatatype()))) {
-				 found[2] = true;
-				 continue;
-			 }
-//			 for (OWLDataRange dr : inclusion)
-//				 System.out.println(dr);
-			 Assert.assertTrue(false);
-		}
-		
-//		m_auxiliaryDataRangeInclusions;
-		found = new boolean[]{false, false};
-		Assert.assertTrue(axioms.m_auxiliaryDataRangeInclusions.size() == 2);
-		for (OWLDataRange[] inclusion : axioms.m_auxiliaryDataRangeInclusions) {
-			if (!found[0] && inclusion.length == 2 && inclusion[0].equals(factory.getOWLDataComplementOf(defData0)) && inclusion[1].equals(factory.getIntegerOWLDatatype())) {
-				 found[0] = true;
-				 continue;
-			 }
-			 if (!found[1] && inclusion.length == 2 && inclusion[0].equals(factory.getOWLDataComplementOf(defData0)) && inclusion[1].equals(factory.getFloatOWLDatatype())) {
-				 found[1] = true;
-				 continue;
-			 }
-			 Assert.assertTrue(false);
-		}
+		Assert.assertTrue(axioms.m_dataRangeInclusions.isEmpty());
 		
 //		public final Map<OWLAxiom,Collection<OWLObjectPropertyExpression[]>> m_simpleObjectPropertyInclusions_map;
 		Assert.assertTrue(axioms.m_simpleObjectPropertyInclusions_map.size() == 1);
@@ -292,31 +271,9 @@ public class NormalizationTest {
 		
 //	    m_disjointDataProperties
 		Assert.assertTrue(axioms.m_disjointDataProperties.isEmpty());
-		
-//		m_facts_map
-		Assert.assertTrue(axioms.m_facts_map.size() == 7);
-		Collection<OWLIndividualAxiom> facts = axioms.m_facts_map.get(ax7);
-		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax7));
-		facts = axioms.m_facts_map.get(ax8);
-		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax8));
-		facts = axioms.m_facts_map.get(ax9);
-		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax9));
-		facts = axioms.m_facts_map.get(ax10);
-		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax10));
-		facts = axioms.m_facts_map.get(ax11);
-		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax11));
-		facts = axioms.m_facts_map.get(ax12);
-		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax12));
-		facts = axioms.m_facts_map.get(ax13);
-		Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax13));
-		
-		
-//		m_hasKeys_map
-		Assert.assertTrue(axioms.m_hasKeys_map.isEmpty());
-		
+				
 //	    m_definedDatatypesIRIs
-		Assert.assertTrue(axioms.m_definedDatatypesIRIs.size() == 1);
-		Assert.assertTrue(axioms.m_definedDatatypesIRIs.iterator().next().equals(datatype.toStringID()));
+		Assert.assertTrue(axioms.m_definedDatatypesIRIs.isEmpty());
 		
 //		m_rules_map
 		Assert.assertTrue(axioms.m_rules_map.isEmpty());
@@ -328,7 +285,7 @@ public class NormalizationTest {
 		try {
 			OWLOntology o = OWLManager.createOWLOntologyManager().createOntology(axiomSet);
 			OWLAxioms_withMaps axioms = new OWLAxioms_withMaps();
-			normalization = new OWLNormalization_withMaps(factory, axioms, 0);
+			normalization = new OWLNormalization_withMaps(factory, axioms, 0, new DatatypeManager());
 			normalization.processOntology(o);
 			
 			//and now go through the output
@@ -365,13 +322,16 @@ public class NormalizationTest {
 			expected_individuals.add(j);
 			Assert.assertEquals(expected_individuals, axioms.m_namedIndividuals);
 			
+//			m_conceptInclusions
+			Assert.assertTrue(axioms.m_conceptInclusions.isEmpty());
+//		    m_conceptInclusions_map
+			Assert.assertTrue(axioms.m_conceptInclusions_map.size() == 2);
+			Collection<OWLClassExpression[]> inclusions = axioms.m_conceptInclusions_map.get(ax2);
+			Assert.assertTrue(inclusions.size() == 2);
 			OWLClassExpression def0 = null;
 			OWLClassExpression def1 = null;
 			OWLClassExpression def2 = null;
-//		    m_conceptInclusions_map
-			Assert.assertTrue(axioms.m_conceptInclusions_map.size() == 3);
-			Collection<OWLClassExpression[]> inclusions = axioms.m_conceptInclusions_map.get(ax2);
-			Assert.assertTrue(inclusions.size() == 2);
+			OWLClassExpression def3 = null;
 			boolean[] found = new boolean[]{false, false}; 
 			for (OWLClassExpression[] inclusion : inclusions) {
 				 if (!found[0] && inclusion.length == 3 &&
@@ -402,19 +362,35 @@ public class NormalizationTest {
 						 ((OWLObjectSomeValuesFrom) inclusion[1]).getProperty().equals(r) &&
 						 ((OWLObjectSomeValuesFrom) inclusion[1]).getFiller().equals(def2));
 			}
-			inclusions = axioms.m_conceptInclusions_map.get(ax4);
-			Assert.assertTrue(inclusions.size() == 1);
-			OWLDataRange defData0 = null;
-			for (OWLClassExpression[] inclusion : inclusions) {
-				if (inclusion.length == 1 &&
-						 inclusion[0] instanceof OWLDataAllValuesFrom && 
-						 ((OWLDataAllValuesFrom) inclusion[0]).getProperty().equals(dp))
-					defData0 = ((OWLDataAllValuesFrom) inclusion[0]).getFiller();
-			}
+			Assert.assertTrue(axioms.m_conceptInclusions_map.get(ax4) == null);
 			
+//			m_facts
+			Assert.assertTrue(axioms.m_facts.isEmpty());
+//			m_facts_map
+			Assert.assertTrue(axioms.m_facts_map.size() == 8);
+			Collection<OWLIndividualAxiom> facts = axioms.m_facts_map.get(ax7);
+			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax7));
+			facts = axioms.m_facts_map.get(ax8);
+			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax8));
+			facts = axioms.m_facts_map.get(ax9);
+			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax9));
+			facts = axioms.m_facts_map.get(ax10);
+			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax10));
+			facts = axioms.m_facts_map.get(ax11);
+			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax11));
+			facts = axioms.m_facts_map.get(ax12);
+			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax12));
+			facts = axioms.m_facts_map.get(ax13);
+			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax13));
+			facts = axioms.m_facts_map.get(ax14);
+			Assert.assertTrue(facts.size() == 1);
+			OWLIndividualAxiom ax = facts.iterator().next();
+			Assert.assertTrue(ax instanceof OWLClassAssertionAxiom && ((OWLClassAssertionAxiom) ax).getIndividual().equals(i));
+			def3 = ((OWLClassAssertionAxiom) ax).getClassExpression();
 			
-			found = new boolean[]{false, false, false, false, false};
-			Assert.assertTrue(axioms.m_auxiliaryConceptInclusions.size() == 5);
+//		    m_auxiliaryConceptInclusions
+			found = new boolean[]{false, false, false, false, false, false};
+			Assert.assertTrue(axioms.m_auxiliaryConceptInclusions.size() == 6);
 			for (OWLClassExpression[] inclusion : axioms.m_auxiliaryConceptInclusions) {
 				if (!found[0] && inclusion.length == 2 && inclusion[0].equals(def1) && inclusion[1].equals(d.getComplementNNF())) {
 					 found[0] = true;
@@ -436,53 +412,18 @@ public class NormalizationTest {
 					 found[4] = true;
 					 continue;
 				 }
+				 if (!found[5] && inclusion.length == 2 && inclusion[0].equals(def3.getComplementNNF()) && inclusion[1].equals(factory.getOWLObjectSomeValuesFrom(r, factory.getOWLObjectOneOf(i,j)))) {
+					 found[5] = true;
+					 continue;
+				 }
 				 Assert.assertTrue(false);
 			}
 			
 //			m_dataRangeInclusions_map
-			Assert.assertTrue(axioms.m_dataRangeInclusions_map.size() == 1);
-			Collection<OWLDataRange[]> dataRangeInclusions = axioms.m_dataRangeInclusions_map.get(ax3);
-			Assert.assertTrue(dataRangeInclusions.size() == 3);
-			found = new boolean[]{false, false, false}; 
-			for (OWLDataRange[] inclusion : dataRangeInclusions) {
-				 if (!found[0] && inclusion.length == 3 &&
-						 inclusion[0].equals(factory.getFloatOWLDatatype()) && inclusion[1].equals(factory.getOWLDataComplementOf(datatype)) && 
-						 inclusion[2].equals(factory.getIntegerOWLDatatype())) {
-					 found[0] = true;
-					 continue;
-				 }
-				 if (!found[1] && inclusion.length == 2 &&
-						 inclusion[0].equals(datatype) && 
-						 inclusion[1].equals(factory.getOWLDataComplementOf(factory.getFloatOWLDatatype()))) {
-					 found[1] = true;
-					 continue;
-				 }
-				 if (!found[2] && inclusion.length == 2 &&
-						 inclusion[0].equals(datatype) && 
-						 inclusion[1].equals(factory.getOWLDataComplementOf(factory.getIntegerOWLDatatype()))) {
-					 found[2] = true;
-					 continue;
-				 }
-//				 for (OWLDataRange dr : inclusion)
-//					 System.out.println(dr);
-				 Assert.assertTrue(false);
-			}
+			Assert.assertTrue(axioms.m_dataRangeInclusions.isEmpty());
 			
-//			m_auxiliaryDataRangeInclusions;
-			found = new boolean[]{false, false};
-			Assert.assertTrue(axioms.m_auxiliaryDataRangeInclusions.size() == 2);
-			for (OWLDataRange[] inclusion : axioms.m_auxiliaryDataRangeInclusions) {
-				if (!found[0] && inclusion.length == 2 && inclusion[0].equals(factory.getOWLDataComplementOf(defData0)) && inclusion[1].equals(factory.getIntegerOWLDatatype())) {
-					 found[0] = true;
-					 continue;
-				 }
-				 if (!found[1] && inclusion.length == 2 && inclusion[0].equals(factory.getOWLDataComplementOf(defData0)) && inclusion[1].equals(factory.getFloatOWLDatatype())) {
-					 found[1] = true;
-					 continue;
-				 }
-				 Assert.assertTrue(false);
-			}
-			
+//			m_simpleObjectPropertyInclusions
+			Assert.assertTrue(axioms.m_simpleObjectPropertyInclusions.isEmpty());
 //			public final Map<OWLAxiom,Collection<OWLObjectPropertyExpression[]>> m_simpleObjectPropertyInclusions_map;
 			Assert.assertTrue(axioms.m_simpleObjectPropertyInclusions_map.size() == 1);
 			Collection<OWLObjectPropertyExpression[]> objectPropertyInclusions = axioms.m_simpleObjectPropertyInclusions_map.get(ax6);
@@ -519,39 +460,28 @@ public class NormalizationTest {
 //		    m_asymmetricObjectProperties
 			Assert.assertTrue(axioms.m_asymmetricObjectProperties.isEmpty());
 			
+//			m_dataPropertyInclusions
+			Assert.assertTrue(axioms.m_dataPropertyInclusions.isEmpty());
 //			m_dataPropertyInclusions_map
 			Assert.assertTrue(axioms.m_dataPropertyInclusions_map.isEmpty());
 			
 //		    m_disjointDataProperties
 			Assert.assertTrue(axioms.m_disjointDataProperties.isEmpty());
 			
-//			m_facts_map
-			Assert.assertTrue(axioms.m_facts_map.size() == 7);
-			Collection<OWLIndividualAxiom> facts = axioms.m_facts_map.get(ax7);
-			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax7));
-			facts = axioms.m_facts_map.get(ax8);
-			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax8));
-			facts = axioms.m_facts_map.get(ax9);
-			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax9));
-			facts = axioms.m_facts_map.get(ax10);
-			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax10));
-			facts = axioms.m_facts_map.get(ax11);
-			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax11));
-			facts = axioms.m_facts_map.get(ax12);
-			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax12));
-			facts = axioms.m_facts_map.get(ax13);
-			Assert.assertTrue(facts.size() == 1 && facts.iterator().next().equals(ax13));
-			
-			
-//			m_hasKeys_map
-			Assert.assertTrue(axioms.m_hasKeys_map.isEmpty());
+//			m_hasKeys
+			Assert.assertTrue(axioms.m_hasKeys.isEmpty());
 			
 //		    m_definedDatatypesIRIs
-			Assert.assertTrue(axioms.m_definedDatatypesIRIs.size() == 1);
-			Assert.assertTrue(axioms.m_definedDatatypesIRIs.iterator().next().equals(datatype.toStringID()));
+			Assert.assertTrue(axioms.m_definedDatatypesIRIs.isEmpty());
 			
+//			m_rules
+			Assert.assertTrue(axioms.m_rules.isEmpty());
 //			m_rules_map
 			Assert.assertTrue(axioms.m_rules_map.isEmpty());
+			
+//			m_literals
+//			System.out.println(axioms.m_literals);
+			Assert.assertTrue(axioms.m_literals.size() == 2);
 			
 			return axioms;
 			
@@ -562,3 +492,4 @@ public class NormalizationTest {
 		}
 	}
 }
+

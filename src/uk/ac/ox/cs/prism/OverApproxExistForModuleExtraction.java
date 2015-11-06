@@ -30,7 +30,7 @@ import uk.ac.ox.cs.pagoda.util.Namespace;
 public class OverApproxExistForModuleExtraction implements Approximator{
 	//copied from OverApproxExists with minor alterations
 
-	IndividualManager indManager;
+	protected IndividualManager indManager;
 	
 	public OverApproxExistForModuleExtraction(IndividualManager iManager){
 		indManager = iManager;
@@ -68,7 +68,7 @@ public class OverApproxExistForModuleExtraction implements Approximator{
 		return -1; 
 	}
 
-	private static final Variable X = Variable.create("X"); 
+	protected static final Variable X = Variable.create("X"); 
 	public static final String negativeSuffix = "_neg"; 
 	
 	public static AtomicConcept getNegationConcept(DLPredicate p) {
